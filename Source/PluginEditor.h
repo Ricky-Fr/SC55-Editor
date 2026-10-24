@@ -1,0 +1,54 @@
+#pragma once
+
+#include <array>
+#include <memory>
+#include "PluginProcessor.h"
+#include "PartParams.h"
+#include "InstrumentData.h"
+#include "SysExParamSlider.h"
+#include "RoundLedButton.h"
+
+class SC55Editor : public juce::AudioProcessorEditor
+{
+public:
+    explicit SC55Editor (SC55Processor&);
+    ~SC55Editor() override = default;
+
+    void paint (juce::Graphics&) override;
+    void resized() override;
+
+private:
+    // Colonne 0 = INSTRUMENT, colonnes suivantes = parametres de la table SC55::getPartParamInfo
+    static constexpr int kNumColumns = SC55::NumPartParams + 1;
+    static constexpr int kDrumPart   = 9;      // part 10 (indice 9) : jeux de batterie
+    static constexpr int kDrumIdBase = 1000;   // identifiants des jeux de batterie dans la liste
+
+    int  currentPart() const              { return partBox.getSelectedId() - 1; }
+    bool isGlobalActive (int paramId) const;
+
+    void populateInstrumentBox();
+    void updateInstrumentBoxSelection();
+    void refreshInstrument();
+    void refreshSlidersFromState();
+    void updateLedStates();
+
+    void onParamSliderChanged (int paramId, int displayValue, bool immediate);
+    void onInstrumentSliderChanged (int displayValue, bool immediate);
+    void onInstrumentBoxChanged();
+
+    SC55Processor& audioProcessor;
+
+    juce::ComboBox   partBox;
+    RoundLedButton   allButton { "ALL", 13.0f, 18.0f };
+    juce::ComboBox   instrumentBox;
+
+    std::array<juce::Label, kNumColumns> labels;
+    std::array<std::unique_ptr<SysExParamSlider>, kNumColumns> sliders;
+    std::array<std::unique_ptr<RoundLedButton>, SC55::NumPartParams> globalButtons;
+
+    juce::TextButton resetButton  { "GS Reset" };
+    juce::TextButton resendButton { "Renvoyer l'etat" };
+    juce::Label      status;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SC55Editor)
+};

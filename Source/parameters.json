@@ -1,0 +1,3772 @@
+{
+  "$schema_note": "SC-55 parameter database, generated from the SC-55 owner's manual pp.58-86 (MIDI Implementation v1.00, Jan 1991).",
+  "device": {
+    "name": "Roland SC-55 Sound Canvas",
+    "manufacturerId": "41",
+    "modelIdGS": "42",
+    "modelIdDisplay": "45",
+    "defaultDeviceId": "10",
+    "deviceIdRange": [
+      "00",
+      "1F"
+    ],
+    "commands": {
+      "RQ1": "11",
+      "DT1": "12"
+    },
+    "checksum": "(128 - ((sum of address bytes + data bytes [+ size bytes for RQ1]) mod 128)) mod 128",
+    "dt1MaxDataBytes": 256,
+    "minIntervalMs": 20,
+    "transfer": "one-way only (no handshake)",
+    "rq1Supported": true
+  },
+  "addressing": {
+    "partPlaceholder": "n",
+    "partToBlock": {
+      "1": "1",
+      "2": "2",
+      "3": "3",
+      "4": "4",
+      "5": "5",
+      "6": "6",
+      "7": "7",
+      "8": "8",
+      "9": "9",
+      "10": "0",
+      "11": "A",
+      "12": "B",
+      "13": "C",
+      "14": "D",
+      "15": "E",
+      "16": "F"
+    },
+    "mapPlaceholder": "m",
+    "drumKeyPlaceholder": "rr",
+    "note": "In addresses, replace 'n' by the block digit of the part (part 10 = 0), 'm' by the drum map (0/1), 'rr' by the drum key number."
+  },
+  "encodings": {
+    "u7": "raw 7-bit value 0..127",
+    "offset40": "signed value stored with +0x40 offset (raw 0x40 = 0)",
+    "flag": "0 = off, 1 = on",
+    "nibblized": "each byte carries 4 bits, most significant nibble first",
+    "ascii": "7-bit ASCII characters",
+    "action": "write-only trigger"
+  },
+  "enums": {
+    "reverbMacro": [
+      "Room 1",
+      "Room 2",
+      "Room 3",
+      "Hall 1",
+      "Hall 2",
+      "Plate",
+      "Delay",
+      "Panning Delay"
+    ],
+    "chorusMacro": [
+      "Chorus 1",
+      "Chorus 2",
+      "Chorus 3",
+      "Chorus 4",
+      "Feedback Chorus",
+      "Flanger",
+      "Short Delay",
+      "Short Delay (FB)"
+    ],
+    "assignMode": [
+      "Single",
+      "Limited-Multi",
+      "Full-Multi"
+    ],
+    "rhythmMap": [
+      "Off",
+      "MAP1",
+      "MAP2"
+    ]
+  },
+  "parameters": [
+    {
+      "id": "master_tune",
+      "label": "Master Tune",
+      "group": "system",
+      "scope": "system",
+      "address": "40 00 00",
+      "bytes": 4,
+      "encoding": "nibblized",
+      "min": 24,
+      "max": 2024,
+      "default": 1024,
+      "defaultBytes": "00 04 00 00",
+      "unit": "cent",
+      "display": {
+        "min": -100.0,
+        "max": 100.0,
+        "center": 1024,
+        "divisor": 10
+      }
+    },
+    {
+      "id": "master_volume",
+      "label": "Master Volume",
+      "group": "system",
+      "scope": "system",
+      "address": "40 00 04",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 127
+    },
+    {
+      "id": "master_key_shift",
+      "label": "Master Key Shift",
+      "group": "system",
+      "scope": "system",
+      "address": "40 00 05",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 40,
+      "max": 88,
+      "default": 64,
+      "unit": "semitone",
+      "display": {
+        "min": -24,
+        "max": 24
+      }
+    },
+    {
+      "id": "master_pan",
+      "label": "Master Pan",
+      "group": "system",
+      "scope": "system",
+      "address": "40 00 06",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 1,
+      "max": 127,
+      "default": 64,
+      "display": {
+        "min": -63,
+        "max": 63
+      }
+    },
+    {
+      "id": "gs_reset",
+      "label": "GS Reset",
+      "group": "system",
+      "scope": "system",
+      "address": "40 00 7F",
+      "bytes": 1,
+      "encoding": "action",
+      "min": 0,
+      "max": 0,
+      "default": 0,
+      "notes": "Send DT1 with data 00 to reset to GS standard mode (F0 41 10 42 12 40 00 7F 00 41 F7)."
+    },
+    {
+      "id": "patch_name",
+      "label": "Patch Name",
+      "group": "common",
+      "scope": "common",
+      "address": "40 01 00",
+      "bytes": 16,
+      "encoding": "ascii",
+      "min": 32,
+      "max": 127,
+      "default": 32
+    },
+    {
+      "id": "partial_reserve_part1",
+      "label": "Partial Reserve Part 1",
+      "group": "common",
+      "scope": "common",
+      "address": "40 01 11",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 24,
+      "default": 6,
+      "notes": "Sum of all partial reserves must be <= 24 (0x18 max for one part)."
+    },
+    {
+      "id": "partial_reserve_part2",
+      "label": "Partial Reserve Part 2",
+      "group": "common",
+      "scope": "common",
+      "address": "40 01 12",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 24,
+      "default": 2,
+      "notes": "Sum of all partial reserves must be <= 24 (0x18 max for one part)."
+    },
+    {
+      "id": "partial_reserve_part3",
+      "label": "Partial Reserve Part 3",
+      "group": "common",
+      "scope": "common",
+      "address": "40 01 13",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 24,
+      "default": 2,
+      "notes": "Sum of all partial reserves must be <= 24 (0x18 max for one part)."
+    },
+    {
+      "id": "partial_reserve_part4",
+      "label": "Partial Reserve Part 4",
+      "group": "common",
+      "scope": "common",
+      "address": "40 01 14",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 24,
+      "default": 2,
+      "notes": "Sum of all partial reserves must be <= 24 (0x18 max for one part)."
+    },
+    {
+      "id": "partial_reserve_part5",
+      "label": "Partial Reserve Part 5",
+      "group": "common",
+      "scope": "common",
+      "address": "40 01 15",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 24,
+      "default": 2,
+      "notes": "Sum of all partial reserves must be <= 24 (0x18 max for one part)."
+    },
+    {
+      "id": "partial_reserve_part6",
+      "label": "Partial Reserve Part 6",
+      "group": "common",
+      "scope": "common",
+      "address": "40 01 16",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 24,
+      "default": 2,
+      "notes": "Sum of all partial reserves must be <= 24 (0x18 max for one part)."
+    },
+    {
+      "id": "partial_reserve_part7",
+      "label": "Partial Reserve Part 7",
+      "group": "common",
+      "scope": "common",
+      "address": "40 01 17",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 24,
+      "default": 2,
+      "notes": "Sum of all partial reserves must be <= 24 (0x18 max for one part)."
+    },
+    {
+      "id": "partial_reserve_part8",
+      "label": "Partial Reserve Part 8",
+      "group": "common",
+      "scope": "common",
+      "address": "40 01 18",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 24,
+      "default": 2,
+      "notes": "Sum of all partial reserves must be <= 24 (0x18 max for one part)."
+    },
+    {
+      "id": "partial_reserve_part9",
+      "label": "Partial Reserve Part 9",
+      "group": "common",
+      "scope": "common",
+      "address": "40 01 19",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 24,
+      "default": 2,
+      "notes": "Sum of all partial reserves must be <= 24 (0x18 max for one part)."
+    },
+    {
+      "id": "partial_reserve_part10",
+      "label": "Partial Reserve Part 10",
+      "group": "common",
+      "scope": "common",
+      "address": "40 01 10",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 24,
+      "default": 2,
+      "notes": "Sum of all partial reserves must be <= 24 (0x18 max for one part)."
+    },
+    {
+      "id": "partial_reserve_part11",
+      "label": "Partial Reserve Part 11",
+      "group": "common",
+      "scope": "common",
+      "address": "40 01 1B",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 24,
+      "default": 0,
+      "notes": "Sum of all partial reserves must be <= 24 (0x18 max for one part)."
+    },
+    {
+      "id": "partial_reserve_part12",
+      "label": "Partial Reserve Part 12",
+      "group": "common",
+      "scope": "common",
+      "address": "40 01 1C",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 24,
+      "default": 0,
+      "notes": "Sum of all partial reserves must be <= 24 (0x18 max for one part)."
+    },
+    {
+      "id": "partial_reserve_part13",
+      "label": "Partial Reserve Part 13",
+      "group": "common",
+      "scope": "common",
+      "address": "40 01 1D",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 24,
+      "default": 0,
+      "notes": "Sum of all partial reserves must be <= 24 (0x18 max for one part)."
+    },
+    {
+      "id": "partial_reserve_part14",
+      "label": "Partial Reserve Part 14",
+      "group": "common",
+      "scope": "common",
+      "address": "40 01 1E",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 24,
+      "default": 0,
+      "notes": "Sum of all partial reserves must be <= 24 (0x18 max for one part)."
+    },
+    {
+      "id": "partial_reserve_part15",
+      "label": "Partial Reserve Part 15",
+      "group": "common",
+      "scope": "common",
+      "address": "40 01 1F",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 24,
+      "default": 0,
+      "notes": "Sum of all partial reserves must be <= 24 (0x18 max for one part)."
+    },
+    {
+      "id": "partial_reserve_part16",
+      "label": "Partial Reserve Part 16",
+      "group": "common",
+      "scope": "common",
+      "address": "40 01 110",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 24,
+      "default": 0,
+      "notes": "Sum of all partial reserves must be <= 24 (0x18 max for one part)."
+    },
+    {
+      "id": "reverb_macro",
+      "label": "Reverb Macro",
+      "group": "reverb",
+      "scope": "common",
+      "address": "40 01 30",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 7,
+      "default": 4,
+      "enum": "reverbMacro"
+    },
+    {
+      "id": "reverb_character",
+      "label": "Reverb Character",
+      "group": "reverb",
+      "scope": "common",
+      "address": "40 01 31",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 7,
+      "default": 4
+    },
+    {
+      "id": "reverb_pre_lpf",
+      "label": "Reverb Pre-LPF",
+      "group": "reverb",
+      "scope": "common",
+      "address": "40 01 32",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 7,
+      "default": 0
+    },
+    {
+      "id": "reverb_level",
+      "label": "Reverb Level",
+      "group": "reverb",
+      "scope": "common",
+      "address": "40 01 33",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 64
+    },
+    {
+      "id": "reverb_time",
+      "label": "Reverb Time",
+      "group": "reverb",
+      "scope": "common",
+      "address": "40 01 34",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 64
+    },
+    {
+      "id": "reverb_delay_feedback",
+      "label": "Reverb Delay Feedback",
+      "group": "reverb",
+      "scope": "common",
+      "address": "40 01 35",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0
+    },
+    {
+      "id": "reverb_send_to_chorus",
+      "label": "Reverb Send Level to Chorus",
+      "group": "reverb",
+      "scope": "common",
+      "address": "40 01 36",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0
+    },
+    {
+      "id": "chorus_macro",
+      "label": "Chorus Macro",
+      "group": "chorus",
+      "scope": "common",
+      "address": "40 01 38",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 7,
+      "default": 2,
+      "enum": "chorusMacro"
+    },
+    {
+      "id": "chorus_pre_lpf",
+      "label": "Chorus Pre-LPF",
+      "group": "chorus",
+      "scope": "common",
+      "address": "40 01 39",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 7,
+      "default": 0
+    },
+    {
+      "id": "chorus_level",
+      "label": "Chorus Level",
+      "group": "chorus",
+      "scope": "common",
+      "address": "40 01 3A",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 64
+    },
+    {
+      "id": "chorus_feedback",
+      "label": "Chorus Feedback",
+      "group": "chorus",
+      "scope": "common",
+      "address": "40 01 3B",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 8
+    },
+    {
+      "id": "chorus_delay",
+      "label": "Chorus Delay",
+      "group": "chorus",
+      "scope": "common",
+      "address": "40 01 3C",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 80
+    },
+    {
+      "id": "chorus_rate",
+      "label": "Chorus Rate",
+      "group": "chorus",
+      "scope": "common",
+      "address": "40 01 3D",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 3
+    },
+    {
+      "id": "chorus_depth",
+      "label": "Chorus Depth",
+      "group": "chorus",
+      "scope": "common",
+      "address": "40 01 3E",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 19
+    },
+    {
+      "id": "chorus_send_to_reverb",
+      "label": "Chorus Send Level to Reverb",
+      "group": "chorus",
+      "scope": "common",
+      "address": "40 01 3F",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0
+    },
+    {
+      "id": "tone_number",
+      "label": "Tone Number (CC0 / Program Change)",
+      "group": "part",
+      "scope": "part",
+      "address": "40 1n 00",
+      "bytes": 2,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "defaultBytes": "00 00",
+      "notes": "Byte 1 = CC#0 value (variation), byte 2 = program change value (instrument number - 1)."
+    },
+    {
+      "id": "rx_channel",
+      "label": "Receive Channel",
+      "group": "midi",
+      "scope": "part",
+      "address": "40 1n 02",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 16,
+      "default": null,
+      "defaultRule": "same as part number (n); 0x10 = OFF",
+      "display": {
+        "min": 1,
+        "max": 16,
+        "offValue": 16
+      }
+    },
+    {
+      "id": "rx_pitch_bend",
+      "label": "Rx. Pitch Bend",
+      "group": "receive",
+      "scope": "part",
+      "address": "40 1n 03",
+      "bytes": 1,
+      "encoding": "flag",
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "id": "rx_ch_pressure",
+      "label": "Rx. Ch Pressure",
+      "group": "receive",
+      "scope": "part",
+      "address": "40 1n 04",
+      "bytes": 1,
+      "encoding": "flag",
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "id": "rx_program_change",
+      "label": "Rx. Program Change",
+      "group": "receive",
+      "scope": "part",
+      "address": "40 1n 05",
+      "bytes": 1,
+      "encoding": "flag",
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "id": "rx_control_change",
+      "label": "Rx. Control Change",
+      "group": "receive",
+      "scope": "part",
+      "address": "40 1n 06",
+      "bytes": 1,
+      "encoding": "flag",
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "id": "rx_poly_pressure",
+      "label": "Rx. Poly Pressure",
+      "group": "receive",
+      "scope": "part",
+      "address": "40 1n 07",
+      "bytes": 1,
+      "encoding": "flag",
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "id": "rx_note_message",
+      "label": "Rx. Note Message",
+      "group": "receive",
+      "scope": "part",
+      "address": "40 1n 08",
+      "bytes": 1,
+      "encoding": "flag",
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "id": "rx_rpn",
+      "label": "Rx. Rpn",
+      "group": "receive",
+      "scope": "part",
+      "address": "40 1n 09",
+      "bytes": 1,
+      "encoding": "flag",
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "id": "rx_nrpn",
+      "label": "Rx. Nrpn",
+      "group": "receive",
+      "scope": "part",
+      "address": "40 1n 0A",
+      "bytes": 1,
+      "encoding": "flag",
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "id": "rx_modulation",
+      "label": "Rx. Modulation",
+      "group": "receive",
+      "scope": "part",
+      "address": "40 1n 0B",
+      "bytes": 1,
+      "encoding": "flag",
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "id": "rx_volume",
+      "label": "Rx. Volume",
+      "group": "receive",
+      "scope": "part",
+      "address": "40 1n 0C",
+      "bytes": 1,
+      "encoding": "flag",
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "id": "rx_panpot",
+      "label": "Rx. Panpot",
+      "group": "receive",
+      "scope": "part",
+      "address": "40 1n 0D",
+      "bytes": 1,
+      "encoding": "flag",
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "id": "rx_expression",
+      "label": "Rx. Expression",
+      "group": "receive",
+      "scope": "part",
+      "address": "40 1n 0E",
+      "bytes": 1,
+      "encoding": "flag",
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "id": "rx_hold1",
+      "label": "Rx. Hold1",
+      "group": "receive",
+      "scope": "part",
+      "address": "40 1n 0F",
+      "bytes": 1,
+      "encoding": "flag",
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "id": "rx_portamento",
+      "label": "Rx. Portamento",
+      "group": "receive",
+      "scope": "part",
+      "address": "40 1n 10",
+      "bytes": 1,
+      "encoding": "flag",
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "id": "rx_sostenuto",
+      "label": "Rx. Sostenuto",
+      "group": "receive",
+      "scope": "part",
+      "address": "40 1n 11",
+      "bytes": 1,
+      "encoding": "flag",
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "id": "rx_soft",
+      "label": "Rx. Soft",
+      "group": "receive",
+      "scope": "part",
+      "address": "40 1n 12",
+      "bytes": 1,
+      "encoding": "flag",
+      "min": 0,
+      "max": 1,
+      "default": 1
+    },
+    {
+      "id": "mono_poly",
+      "label": "Mono/Poly Mode",
+      "group": "part",
+      "scope": "part",
+      "address": "40 1n 13",
+      "bytes": 1,
+      "encoding": "flag",
+      "min": 0,
+      "max": 1,
+      "default": 1,
+      "notes": "0 = Mono, 1 = Poly."
+    },
+    {
+      "id": "assign_mode",
+      "label": "Assign Mode",
+      "group": "part",
+      "scope": "part",
+      "address": "40 1n 14",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 2,
+      "default": 1,
+      "enum": "assignMode",
+      "defaultRule": "0 for part 10 (n=0), 1 otherwise"
+    },
+    {
+      "id": "use_for_rhythm",
+      "label": "Use for Rhythm Part",
+      "group": "part",
+      "scope": "part",
+      "address": "40 1n 15",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 2,
+      "default": 0,
+      "enum": "rhythmMap",
+      "defaultRule": "1 (MAP1) for part 10 (n=0), 0 otherwise"
+    },
+    {
+      "id": "pitch_key_shift",
+      "label": "Pitch Key Shift",
+      "group": "pitch",
+      "scope": "part",
+      "address": "40 1n 16",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 40,
+      "max": 88,
+      "default": 64,
+      "unit": "semitone",
+      "display": {
+        "min": -24,
+        "max": 24
+      }
+    },
+    {
+      "id": "pitch_offset_fine",
+      "label": "Pitch Offset Fine",
+      "group": "pitch",
+      "scope": "part",
+      "address": "40 1n 17",
+      "bytes": 2,
+      "encoding": "nibblized",
+      "min": null,
+      "max": null,
+      "default": 2048,
+      "defaultBytes": "08 00",
+      "unit": "Hz",
+      "display": {
+        "min": -12.0,
+        "max": 12.0
+      },
+      "verify": true,
+      "notes": "Nibblized 2 bytes, default 08 00. Exact raw range hard to read on the scan (08..F8?)."
+    },
+    {
+      "id": "part_level",
+      "label": "Part Level",
+      "group": "mixer",
+      "scope": "part",
+      "address": "40 1n 19",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 100,
+      "equivalentMidi": "CC7"
+    },
+    {
+      "id": "velocity_sense_depth",
+      "label": "Velocity Sense Depth",
+      "group": "velocity",
+      "scope": "part",
+      "address": "40 1n 1A",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 64
+    },
+    {
+      "id": "velocity_sense_offset",
+      "label": "Velocity Sense Offset",
+      "group": "velocity",
+      "scope": "part",
+      "address": "40 1n 1B",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 64
+    },
+    {
+      "id": "part_panpot",
+      "label": "Part Panpot",
+      "group": "mixer",
+      "scope": "part",
+      "address": "40 1n 1C",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "equivalentMidi": "CC10",
+      "display": {
+        "min": -63,
+        "max": 63,
+        "center": 64,
+        "randomValue": 0
+      }
+    },
+    {
+      "id": "key_range_low",
+      "label": "Key Range Low",
+      "group": "keyboard",
+      "scope": "part",
+      "address": "40 1n 1D",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0
+    },
+    {
+      "id": "key_range_high",
+      "label": "Key Range High",
+      "group": "keyboard",
+      "scope": "part",
+      "address": "40 1n 1E",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 127
+    },
+    {
+      "id": "cc1_controller_number",
+      "label": "CC1 Controller Number",
+      "group": "controllers",
+      "scope": "part",
+      "address": "40 1n 1F",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 16
+    },
+    {
+      "id": "cc2_controller_number",
+      "label": "CC2 Controller Number",
+      "group": "controllers",
+      "scope": "part",
+      "address": "40 1n 20",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 17
+    },
+    {
+      "id": "chorus_send_depth",
+      "label": "Chorus Send Depth",
+      "group": "mixer",
+      "scope": "part",
+      "address": "40 1n 21",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "equivalentMidi": "CC93"
+    },
+    {
+      "id": "reverb_send_depth",
+      "label": "Reverb Send Depth",
+      "group": "mixer",
+      "scope": "part",
+      "address": "40 1n 22",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 40,
+      "equivalentMidi": "CC91"
+    },
+    {
+      "id": "tone_modify_vibrato_rate",
+      "label": "Tone Modify: Vibrato Rate",
+      "group": "tone",
+      "scope": "part",
+      "address": "40 1n 30",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 14,
+      "max": 114,
+      "default": 64,
+      "display": {
+        "min": -50,
+        "max": 50
+      },
+      "equivalentMidi": "NRPN 01 08"
+    },
+    {
+      "id": "tone_modify_vibrato_depth",
+      "label": "Tone Modify: Vibrato Depth",
+      "group": "tone",
+      "scope": "part",
+      "address": "40 1n 31",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 14,
+      "max": 114,
+      "default": 64,
+      "display": {
+        "min": -50,
+        "max": 50
+      },
+      "equivalentMidi": "NRPN 01 09"
+    },
+    {
+      "id": "tone_modify_tvf_cutoff",
+      "label": "Tone Modify: Tvf Cutoff",
+      "group": "tone",
+      "scope": "part",
+      "address": "40 1n 32",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 14,
+      "max": 114,
+      "default": 64,
+      "display": {
+        "min": -50,
+        "max": 50
+      },
+      "equivalentMidi": "NRPN 01 20"
+    },
+    {
+      "id": "tone_modify_tvf_resonance",
+      "label": "Tone Modify: Tvf Resonance",
+      "group": "tone",
+      "scope": "part",
+      "address": "40 1n 33",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 14,
+      "max": 114,
+      "default": 64,
+      "display": {
+        "min": -50,
+        "max": 50
+      },
+      "equivalentMidi": "NRPN 01 21"
+    },
+    {
+      "id": "tone_modify_env_attack",
+      "label": "Tone Modify: Env Attack",
+      "group": "tone",
+      "scope": "part",
+      "address": "40 1n 34",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 14,
+      "max": 114,
+      "default": 64,
+      "display": {
+        "min": -50,
+        "max": 50
+      },
+      "equivalentMidi": "NRPN 01 63"
+    },
+    {
+      "id": "tone_modify_env_decay",
+      "label": "Tone Modify: Env Decay",
+      "group": "tone",
+      "scope": "part",
+      "address": "40 1n 35",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 14,
+      "max": 114,
+      "default": 64,
+      "display": {
+        "min": -50,
+        "max": 50
+      },
+      "equivalentMidi": "NRPN 01 64"
+    },
+    {
+      "id": "tone_modify_env_release",
+      "label": "Tone Modify: Env Release",
+      "group": "tone",
+      "scope": "part",
+      "address": "40 1n 36",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 14,
+      "max": 114,
+      "default": 64,
+      "display": {
+        "min": -50,
+        "max": 50
+      },
+      "equivalentMidi": "NRPN 01 66"
+    },
+    {
+      "id": "tone_modify_vibrato_delay",
+      "label": "Tone Modify: Vibrato Delay",
+      "group": "tone",
+      "scope": "part",
+      "address": "40 1n 37",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 14,
+      "max": 114,
+      "default": 64,
+      "display": {
+        "min": -50,
+        "max": 50
+      },
+      "equivalentMidi": "NRPN 01 0A"
+    },
+    {
+      "id": "scale_tuning_c",
+      "label": "Scale Tuning C",
+      "group": "scale",
+      "scope": "part",
+      "address": "40 1n 40",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "cent",
+      "display": {
+        "min": -64,
+        "max": 63
+      },
+      "notes": "Scale tuning; the manual lists 40 1n 40 with size 0C then one row per note."
+    },
+    {
+      "id": "scale_tuning_cs",
+      "label": "Scale Tuning C#",
+      "group": "scale",
+      "scope": "part",
+      "address": "40 1n 41",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "cent",
+      "display": {
+        "min": -64,
+        "max": 63
+      },
+      "notes": "Scale tuning; the manual lists 40 1n 40 with size 0C then one row per note."
+    },
+    {
+      "id": "scale_tuning_d",
+      "label": "Scale Tuning D",
+      "group": "scale",
+      "scope": "part",
+      "address": "40 1n 42",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "cent",
+      "display": {
+        "min": -64,
+        "max": 63
+      },
+      "notes": "Scale tuning; the manual lists 40 1n 40 with size 0C then one row per note."
+    },
+    {
+      "id": "scale_tuning_ds",
+      "label": "Scale Tuning D#",
+      "group": "scale",
+      "scope": "part",
+      "address": "40 1n 43",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "cent",
+      "display": {
+        "min": -64,
+        "max": 63
+      },
+      "notes": "Scale tuning; the manual lists 40 1n 40 with size 0C then one row per note."
+    },
+    {
+      "id": "scale_tuning_e",
+      "label": "Scale Tuning E",
+      "group": "scale",
+      "scope": "part",
+      "address": "40 1n 44",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "cent",
+      "display": {
+        "min": -64,
+        "max": 63
+      },
+      "notes": "Scale tuning; the manual lists 40 1n 40 with size 0C then one row per note."
+    },
+    {
+      "id": "scale_tuning_f",
+      "label": "Scale Tuning F",
+      "group": "scale",
+      "scope": "part",
+      "address": "40 1n 45",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "cent",
+      "display": {
+        "min": -64,
+        "max": 63
+      },
+      "notes": "Scale tuning; the manual lists 40 1n 40 with size 0C then one row per note."
+    },
+    {
+      "id": "scale_tuning_fs",
+      "label": "Scale Tuning F#",
+      "group": "scale",
+      "scope": "part",
+      "address": "40 1n 46",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "cent",
+      "display": {
+        "min": -64,
+        "max": 63
+      },
+      "notes": "Scale tuning; the manual lists 40 1n 40 with size 0C then one row per note."
+    },
+    {
+      "id": "scale_tuning_g",
+      "label": "Scale Tuning G",
+      "group": "scale",
+      "scope": "part",
+      "address": "40 1n 47",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "cent",
+      "display": {
+        "min": -64,
+        "max": 63
+      },
+      "notes": "Scale tuning; the manual lists 40 1n 40 with size 0C then one row per note."
+    },
+    {
+      "id": "scale_tuning_gs",
+      "label": "Scale Tuning G#",
+      "group": "scale",
+      "scope": "part",
+      "address": "40 1n 48",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "cent",
+      "display": {
+        "min": -64,
+        "max": 63
+      },
+      "notes": "Scale tuning; the manual lists 40 1n 40 with size 0C then one row per note."
+    },
+    {
+      "id": "scale_tuning_a",
+      "label": "Scale Tuning A",
+      "group": "scale",
+      "scope": "part",
+      "address": "40 1n 49",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "cent",
+      "display": {
+        "min": -64,
+        "max": 63
+      },
+      "notes": "Scale tuning; the manual lists 40 1n 40 with size 0C then one row per note."
+    },
+    {
+      "id": "scale_tuning_as",
+      "label": "Scale Tuning A#",
+      "group": "scale",
+      "scope": "part",
+      "address": "40 1n 4A",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "cent",
+      "display": {
+        "min": -64,
+        "max": 63
+      },
+      "notes": "Scale tuning; the manual lists 40 1n 40 with size 0C then one row per note."
+    },
+    {
+      "id": "scale_tuning_b",
+      "label": "Scale Tuning B",
+      "group": "scale",
+      "scope": "part",
+      "address": "40 1n 4B",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "cent",
+      "display": {
+        "min": -64,
+        "max": 63
+      },
+      "notes": "Scale tuning; the manual lists 40 1n 40 with size 0C then one row per note."
+    },
+    {
+      "id": "ctrl_mod_pitch_control",
+      "label": "Modulation: Pitch Control",
+      "group": "controller_mod",
+      "scope": "part",
+      "address": "40 2n 00",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 40,
+      "max": 88,
+      "default": 64,
+      "unit": "semitone",
+      "display": {
+        "min": -24,
+        "max": 24
+      }
+    },
+    {
+      "id": "ctrl_mod_tvf_cutoff",
+      "label": "Modulation: TVF Cutoff Control",
+      "group": "controller_mod",
+      "scope": "part",
+      "address": "40 2n 01",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "cent",
+      "display": {
+        "min": -9600,
+        "max": 9600
+      }
+    },
+    {
+      "id": "ctrl_mod_amplitude",
+      "label": "Modulation: Amplitude Control",
+      "group": "controller_mod",
+      "scope": "part",
+      "address": "40 2n 02",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "%",
+      "display": {
+        "min": -100.0,
+        "max": 100.0
+      }
+    },
+    {
+      "id": "ctrl_mod_lfo1_rate",
+      "label": "Modulation: LFO1 Rate Control",
+      "group": "controller_mod",
+      "scope": "part",
+      "address": "40 2n 03",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "Hz",
+      "display": {
+        "min": -10.0,
+        "max": 10.0
+      }
+    },
+    {
+      "id": "ctrl_mod_lfo1_pitch_depth",
+      "label": "Modulation: LFO1 Pitch Depth",
+      "group": "controller_mod",
+      "scope": "part",
+      "address": "40 2n 04",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 10,
+      "unit": "cent",
+      "display": {
+        "min": 0,
+        "max": 600
+      }
+    },
+    {
+      "id": "ctrl_mod_lfo1_tvf_depth",
+      "label": "Modulation: LFO1 TVF Depth",
+      "group": "controller_mod",
+      "scope": "part",
+      "address": "40 2n 05",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "unit": "cent",
+      "display": {
+        "min": 0,
+        "max": 2400
+      }
+    },
+    {
+      "id": "ctrl_mod_lfo1_tva_depth",
+      "label": "Modulation: LFO1 TVA Depth",
+      "group": "controller_mod",
+      "scope": "part",
+      "address": "40 2n 06",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "unit": "%",
+      "display": {
+        "min": 0.0,
+        "max": 100.0
+      }
+    },
+    {
+      "id": "ctrl_mod_lfo2_rate",
+      "label": "Modulation: LFO2 Rate Control",
+      "group": "controller_mod",
+      "scope": "part",
+      "address": "40 2n 07",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "Hz",
+      "display": {
+        "min": -10.0,
+        "max": 10.0
+      }
+    },
+    {
+      "id": "ctrl_mod_lfo2_pitch_depth",
+      "label": "Modulation: LFO2 Pitch Depth",
+      "group": "controller_mod",
+      "scope": "part",
+      "address": "40 2n 08",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "unit": "cent",
+      "display": {
+        "min": 0,
+        "max": 600
+      }
+    },
+    {
+      "id": "ctrl_mod_lfo2_tvf_depth",
+      "label": "Modulation: LFO2 TVF Depth",
+      "group": "controller_mod",
+      "scope": "part",
+      "address": "40 2n 09",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "unit": "cent",
+      "display": {
+        "min": 0,
+        "max": 2400
+      }
+    },
+    {
+      "id": "ctrl_mod_lfo2_tva_depth",
+      "label": "Modulation: LFO2 TVA Depth",
+      "group": "controller_mod",
+      "scope": "part",
+      "address": "40 2n 0A",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "unit": "%",
+      "display": {
+        "min": 0.0,
+        "max": 100.0
+      }
+    },
+    {
+      "id": "ctrl_bend_pitch_control",
+      "label": "Pitch Bend: Pitch Control",
+      "group": "controller_bend",
+      "scope": "part",
+      "address": "40 2n 10",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 64,
+      "max": 88,
+      "default": 66,
+      "unit": "semitone",
+      "display": {
+        "min": 0,
+        "max": 24
+      }
+    },
+    {
+      "id": "ctrl_bend_tvf_cutoff",
+      "label": "Pitch Bend: TVF Cutoff Control",
+      "group": "controller_bend",
+      "scope": "part",
+      "address": "40 2n 11",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "cent",
+      "display": {
+        "min": -9600,
+        "max": 9600
+      }
+    },
+    {
+      "id": "ctrl_bend_amplitude",
+      "label": "Pitch Bend: Amplitude Control",
+      "group": "controller_bend",
+      "scope": "part",
+      "address": "40 2n 12",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "%",
+      "display": {
+        "min": -100.0,
+        "max": 100.0
+      }
+    },
+    {
+      "id": "ctrl_bend_lfo1_rate",
+      "label": "Pitch Bend: LFO1 Rate Control",
+      "group": "controller_bend",
+      "scope": "part",
+      "address": "40 2n 13",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "Hz",
+      "display": {
+        "min": -10.0,
+        "max": 10.0
+      }
+    },
+    {
+      "id": "ctrl_bend_lfo1_pitch_depth",
+      "label": "Pitch Bend: LFO1 Pitch Depth",
+      "group": "controller_bend",
+      "scope": "part",
+      "address": "40 2n 14",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "unit": "cent",
+      "display": {
+        "min": 0,
+        "max": 600
+      }
+    },
+    {
+      "id": "ctrl_bend_lfo1_tvf_depth",
+      "label": "Pitch Bend: LFO1 TVF Depth",
+      "group": "controller_bend",
+      "scope": "part",
+      "address": "40 2n 15",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "unit": "cent",
+      "display": {
+        "min": 0,
+        "max": 2400
+      }
+    },
+    {
+      "id": "ctrl_bend_lfo1_tva_depth",
+      "label": "Pitch Bend: LFO1 TVA Depth",
+      "group": "controller_bend",
+      "scope": "part",
+      "address": "40 2n 16",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "unit": "%",
+      "display": {
+        "min": 0.0,
+        "max": 100.0
+      }
+    },
+    {
+      "id": "ctrl_bend_lfo2_rate",
+      "label": "Pitch Bend: LFO2 Rate Control",
+      "group": "controller_bend",
+      "scope": "part",
+      "address": "40 2n 17",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "Hz",
+      "display": {
+        "min": -10.0,
+        "max": 10.0
+      }
+    },
+    {
+      "id": "ctrl_bend_lfo2_pitch_depth",
+      "label": "Pitch Bend: LFO2 Pitch Depth",
+      "group": "controller_bend",
+      "scope": "part",
+      "address": "40 2n 18",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "unit": "cent",
+      "display": {
+        "min": 0,
+        "max": 600
+      }
+    },
+    {
+      "id": "ctrl_bend_lfo2_tvf_depth",
+      "label": "Pitch Bend: LFO2 TVF Depth",
+      "group": "controller_bend",
+      "scope": "part",
+      "address": "40 2n 19",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "unit": "cent",
+      "display": {
+        "min": 0,
+        "max": 2400
+      }
+    },
+    {
+      "id": "ctrl_bend_lfo2_tva_depth",
+      "label": "Pitch Bend: LFO2 TVA Depth",
+      "group": "controller_bend",
+      "scope": "part",
+      "address": "40 2n 1A",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "unit": "%",
+      "display": {
+        "min": 0.0,
+        "max": 100.0
+      },
+      "verify": true,
+      "notes": "Default read as 40 on the scan; expected 00. Check with the real unit."
+    },
+    {
+      "id": "ctrl_caf_pitch_control",
+      "label": "Channel Aftertouch: Pitch Control",
+      "group": "controller_caf",
+      "scope": "part",
+      "address": "40 2n 20",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 40,
+      "max": 88,
+      "default": 64,
+      "unit": "semitone",
+      "display": {
+        "min": -24,
+        "max": 24
+      }
+    },
+    {
+      "id": "ctrl_caf_tvf_cutoff",
+      "label": "Channel Aftertouch: TVF Cutoff Control",
+      "group": "controller_caf",
+      "scope": "part",
+      "address": "40 2n 21",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "cent",
+      "display": {
+        "min": -9600,
+        "max": 9600
+      }
+    },
+    {
+      "id": "ctrl_caf_amplitude",
+      "label": "Channel Aftertouch: Amplitude Control",
+      "group": "controller_caf",
+      "scope": "part",
+      "address": "40 2n 22",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "%",
+      "display": {
+        "min": -100.0,
+        "max": 100.0
+      }
+    },
+    {
+      "id": "ctrl_caf_lfo1_rate",
+      "label": "Channel Aftertouch: LFO1 Rate Control",
+      "group": "controller_caf",
+      "scope": "part",
+      "address": "40 2n 23",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "Hz",
+      "display": {
+        "min": -10.0,
+        "max": 10.0
+      }
+    },
+    {
+      "id": "ctrl_caf_lfo1_pitch_depth",
+      "label": "Channel Aftertouch: LFO1 Pitch Depth",
+      "group": "controller_caf",
+      "scope": "part",
+      "address": "40 2n 24",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "unit": "cent",
+      "display": {
+        "min": 0,
+        "max": 600
+      }
+    },
+    {
+      "id": "ctrl_caf_lfo1_tvf_depth",
+      "label": "Channel Aftertouch: LFO1 TVF Depth",
+      "group": "controller_caf",
+      "scope": "part",
+      "address": "40 2n 25",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "unit": "cent",
+      "display": {
+        "min": 0,
+        "max": 2400
+      }
+    },
+    {
+      "id": "ctrl_caf_lfo1_tva_depth",
+      "label": "Channel Aftertouch: LFO1 TVA Depth",
+      "group": "controller_caf",
+      "scope": "part",
+      "address": "40 2n 26",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "unit": "%",
+      "display": {
+        "min": 0.0,
+        "max": 100.0
+      }
+    },
+    {
+      "id": "ctrl_caf_lfo2_rate",
+      "label": "Channel Aftertouch: LFO2 Rate Control",
+      "group": "controller_caf",
+      "scope": "part",
+      "address": "40 2n 27",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "Hz",
+      "display": {
+        "min": -10.0,
+        "max": 10.0
+      }
+    },
+    {
+      "id": "ctrl_caf_lfo2_pitch_depth",
+      "label": "Channel Aftertouch: LFO2 Pitch Depth",
+      "group": "controller_caf",
+      "scope": "part",
+      "address": "40 2n 28",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "unit": "cent",
+      "display": {
+        "min": 0,
+        "max": 600
+      }
+    },
+    {
+      "id": "ctrl_caf_lfo2_tvf_depth",
+      "label": "Channel Aftertouch: LFO2 TVF Depth",
+      "group": "controller_caf",
+      "scope": "part",
+      "address": "40 2n 29",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "unit": "cent",
+      "display": {
+        "min": 0,
+        "max": 2400
+      }
+    },
+    {
+      "id": "ctrl_caf_lfo2_tva_depth",
+      "label": "Channel Aftertouch: LFO2 TVA Depth",
+      "group": "controller_caf",
+      "scope": "part",
+      "address": "40 2n 2A",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "unit": "%",
+      "display": {
+        "min": 0.0,
+        "max": 100.0
+      }
+    },
+    {
+      "id": "ctrl_paf_pitch_control",
+      "label": "Poly Aftertouch: Pitch Control",
+      "group": "controller_paf",
+      "scope": "part",
+      "address": "40 2n 30",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 40,
+      "max": 88,
+      "default": 64,
+      "unit": "semitone",
+      "display": {
+        "min": -24,
+        "max": 24
+      }
+    },
+    {
+      "id": "ctrl_paf_tvf_cutoff",
+      "label": "Poly Aftertouch: TVF Cutoff Control",
+      "group": "controller_paf",
+      "scope": "part",
+      "address": "40 2n 31",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "cent",
+      "display": {
+        "min": -9600,
+        "max": 9600
+      }
+    },
+    {
+      "id": "ctrl_paf_amplitude",
+      "label": "Poly Aftertouch: Amplitude Control",
+      "group": "controller_paf",
+      "scope": "part",
+      "address": "40 2n 32",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "%",
+      "display": {
+        "min": -100.0,
+        "max": 100.0
+      }
+    },
+    {
+      "id": "ctrl_paf_lfo1_rate",
+      "label": "Poly Aftertouch: LFO1 Rate Control",
+      "group": "controller_paf",
+      "scope": "part",
+      "address": "40 2n 33",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "Hz",
+      "display": {
+        "min": -10.0,
+        "max": 10.0
+      }
+    },
+    {
+      "id": "ctrl_paf_lfo1_pitch_depth",
+      "label": "Poly Aftertouch: LFO1 Pitch Depth",
+      "group": "controller_paf",
+      "scope": "part",
+      "address": "40 2n 34",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "unit": "cent",
+      "display": {
+        "min": 0,
+        "max": 600
+      }
+    },
+    {
+      "id": "ctrl_paf_lfo1_tvf_depth",
+      "label": "Poly Aftertouch: LFO1 TVF Depth",
+      "group": "controller_paf",
+      "scope": "part",
+      "address": "40 2n 35",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "unit": "cent",
+      "display": {
+        "min": 0,
+        "max": 2400
+      }
+    },
+    {
+      "id": "ctrl_paf_lfo1_tva_depth",
+      "label": "Poly Aftertouch: LFO1 TVA Depth",
+      "group": "controller_paf",
+      "scope": "part",
+      "address": "40 2n 36",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "unit": "%",
+      "display": {
+        "min": 0.0,
+        "max": 100.0
+      }
+    },
+    {
+      "id": "ctrl_paf_lfo2_rate",
+      "label": "Poly Aftertouch: LFO2 Rate Control",
+      "group": "controller_paf",
+      "scope": "part",
+      "address": "40 2n 37",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "Hz",
+      "display": {
+        "min": -10.0,
+        "max": 10.0
+      }
+    },
+    {
+      "id": "ctrl_paf_lfo2_pitch_depth",
+      "label": "Poly Aftertouch: LFO2 Pitch Depth",
+      "group": "controller_paf",
+      "scope": "part",
+      "address": "40 2n 38",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "unit": "cent",
+      "display": {
+        "min": 0,
+        "max": 600
+      }
+    },
+    {
+      "id": "ctrl_paf_lfo2_tvf_depth",
+      "label": "Poly Aftertouch: LFO2 TVF Depth",
+      "group": "controller_paf",
+      "scope": "part",
+      "address": "40 2n 39",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "unit": "cent",
+      "display": {
+        "min": 0,
+        "max": 2400
+      }
+    },
+    {
+      "id": "ctrl_paf_lfo2_tva_depth",
+      "label": "Poly Aftertouch: LFO2 TVA Depth",
+      "group": "controller_paf",
+      "scope": "part",
+      "address": "40 2n 3A",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "unit": "%",
+      "display": {
+        "min": 0.0,
+        "max": 100.0
+      }
+    },
+    {
+      "id": "ctrl_cc1_pitch_control",
+      "label": "CC1: Pitch Control",
+      "group": "controller_cc1",
+      "scope": "part",
+      "address": "40 2n 40",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 40,
+      "max": 88,
+      "default": 64,
+      "unit": "semitone",
+      "display": {
+        "min": -24,
+        "max": 24
+      }
+    },
+    {
+      "id": "ctrl_cc1_tvf_cutoff",
+      "label": "CC1: TVF Cutoff Control",
+      "group": "controller_cc1",
+      "scope": "part",
+      "address": "40 2n 41",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "cent",
+      "display": {
+        "min": -9600,
+        "max": 9600
+      }
+    },
+    {
+      "id": "ctrl_cc1_amplitude",
+      "label": "CC1: Amplitude Control",
+      "group": "controller_cc1",
+      "scope": "part",
+      "address": "40 2n 42",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "%",
+      "display": {
+        "min": -100.0,
+        "max": 100.0
+      }
+    },
+    {
+      "id": "ctrl_cc1_lfo1_rate",
+      "label": "CC1: LFO1 Rate Control",
+      "group": "controller_cc1",
+      "scope": "part",
+      "address": "40 2n 43",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "Hz",
+      "display": {
+        "min": -10.0,
+        "max": 10.0
+      }
+    },
+    {
+      "id": "ctrl_cc1_lfo1_pitch_depth",
+      "label": "CC1: LFO1 Pitch Depth",
+      "group": "controller_cc1",
+      "scope": "part",
+      "address": "40 2n 44",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "unit": "cent",
+      "display": {
+        "min": 0,
+        "max": 600
+      }
+    },
+    {
+      "id": "ctrl_cc1_lfo1_tvf_depth",
+      "label": "CC1: LFO1 TVF Depth",
+      "group": "controller_cc1",
+      "scope": "part",
+      "address": "40 2n 45",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "unit": "cent",
+      "display": {
+        "min": 0,
+        "max": 2400
+      }
+    },
+    {
+      "id": "ctrl_cc1_lfo1_tva_depth",
+      "label": "CC1: LFO1 TVA Depth",
+      "group": "controller_cc1",
+      "scope": "part",
+      "address": "40 2n 46",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "unit": "%",
+      "display": {
+        "min": 0.0,
+        "max": 100.0
+      }
+    },
+    {
+      "id": "ctrl_cc1_lfo2_rate",
+      "label": "CC1: LFO2 Rate Control",
+      "group": "controller_cc1",
+      "scope": "part",
+      "address": "40 2n 47",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "Hz",
+      "display": {
+        "min": -10.0,
+        "max": 10.0
+      }
+    },
+    {
+      "id": "ctrl_cc1_lfo2_pitch_depth",
+      "label": "CC1: LFO2 Pitch Depth",
+      "group": "controller_cc1",
+      "scope": "part",
+      "address": "40 2n 48",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "unit": "cent",
+      "display": {
+        "min": 0,
+        "max": 600
+      }
+    },
+    {
+      "id": "ctrl_cc1_lfo2_tvf_depth",
+      "label": "CC1: LFO2 TVF Depth",
+      "group": "controller_cc1",
+      "scope": "part",
+      "address": "40 2n 49",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "unit": "cent",
+      "display": {
+        "min": 0,
+        "max": 2400
+      }
+    },
+    {
+      "id": "ctrl_cc1_lfo2_tva_depth",
+      "label": "CC1: LFO2 TVA Depth",
+      "group": "controller_cc1",
+      "scope": "part",
+      "address": "40 2n 4A",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "unit": "%",
+      "display": {
+        "min": 0.0,
+        "max": 100.0
+      }
+    },
+    {
+      "id": "ctrl_cc2_pitch_control",
+      "label": "CC2: Pitch Control",
+      "group": "controller_cc2",
+      "scope": "part",
+      "address": "40 2n 50",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 40,
+      "max": 88,
+      "default": 64,
+      "unit": "semitone",
+      "display": {
+        "min": -24,
+        "max": 24
+      }
+    },
+    {
+      "id": "ctrl_cc2_tvf_cutoff",
+      "label": "CC2: TVF Cutoff Control",
+      "group": "controller_cc2",
+      "scope": "part",
+      "address": "40 2n 51",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "cent",
+      "display": {
+        "min": -9600,
+        "max": 9600
+      }
+    },
+    {
+      "id": "ctrl_cc2_amplitude",
+      "label": "CC2: Amplitude Control",
+      "group": "controller_cc2",
+      "scope": "part",
+      "address": "40 2n 52",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "%",
+      "display": {
+        "min": -100.0,
+        "max": 100.0
+      }
+    },
+    {
+      "id": "ctrl_cc2_lfo1_rate",
+      "label": "CC2: LFO1 Rate Control",
+      "group": "controller_cc2",
+      "scope": "part",
+      "address": "40 2n 53",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "Hz",
+      "display": {
+        "min": -10.0,
+        "max": 10.0
+      }
+    },
+    {
+      "id": "ctrl_cc2_lfo1_pitch_depth",
+      "label": "CC2: LFO1 Pitch Depth",
+      "group": "controller_cc2",
+      "scope": "part",
+      "address": "40 2n 54",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "unit": "cent",
+      "display": {
+        "min": 0,
+        "max": 600
+      }
+    },
+    {
+      "id": "ctrl_cc2_lfo1_tvf_depth",
+      "label": "CC2: LFO1 TVF Depth",
+      "group": "controller_cc2",
+      "scope": "part",
+      "address": "40 2n 55",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "unit": "cent",
+      "display": {
+        "min": 0,
+        "max": 2400
+      }
+    },
+    {
+      "id": "ctrl_cc2_lfo1_tva_depth",
+      "label": "CC2: LFO1 TVA Depth",
+      "group": "controller_cc2",
+      "scope": "part",
+      "address": "40 2n 56",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "unit": "%",
+      "display": {
+        "min": 0.0,
+        "max": 100.0
+      }
+    },
+    {
+      "id": "ctrl_cc2_lfo2_rate",
+      "label": "CC2: LFO2 Rate Control",
+      "group": "controller_cc2",
+      "scope": "part",
+      "address": "40 2n 57",
+      "bytes": 1,
+      "encoding": "offset40",
+      "min": 0,
+      "max": 127,
+      "default": 64,
+      "unit": "Hz",
+      "display": {
+        "min": -10.0,
+        "max": 10.0
+      }
+    },
+    {
+      "id": "ctrl_cc2_lfo2_pitch_depth",
+      "label": "CC2: LFO2 Pitch Depth",
+      "group": "controller_cc2",
+      "scope": "part",
+      "address": "40 2n 58",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "unit": "cent",
+      "display": {
+        "min": 0,
+        "max": 600
+      }
+    },
+    {
+      "id": "ctrl_cc2_lfo2_tvf_depth",
+      "label": "CC2: LFO2 TVF Depth",
+      "group": "controller_cc2",
+      "scope": "part",
+      "address": "40 2n 59",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "unit": "cent",
+      "display": {
+        "min": 0,
+        "max": 2400
+      }
+    },
+    {
+      "id": "ctrl_cc2_lfo2_tva_depth",
+      "label": "CC2: LFO2 TVA Depth",
+      "group": "controller_cc2",
+      "scope": "part",
+      "address": "40 2n 5A",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": 0,
+      "unit": "%",
+      "display": {
+        "min": 0.0,
+        "max": 100.0
+      }
+    },
+    {
+      "id": "drum_map_name",
+      "label": "Drum Map Name",
+      "group": "drum",
+      "scope": "drum",
+      "address": "41 m0 00",
+      "bytes": 12,
+      "encoding": "ascii",
+      "min": 32,
+      "max": 127,
+      "default": 32,
+      "notes": "m = map number (0 = MAP1, 1 = MAP2)."
+    },
+    {
+      "id": "drum_play_key",
+      "label": "Play Key Number (pitch coarse)",
+      "group": "drum",
+      "scope": "drum",
+      "address": "41 m1 rr",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": null,
+      "notes": "m = map number (0/1), rr = drum key number (00-7F).",
+      "equivalentMidi": "NRPN 18 rr"
+    },
+    {
+      "id": "drum_level",
+      "label": "Level (TVA)",
+      "group": "drum",
+      "scope": "drum",
+      "address": "41 m2 rr",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": null,
+      "notes": "m = map number (0/1), rr = drum key number (00-7F).",
+      "equivalentMidi": "NRPN 1A rr"
+    },
+    {
+      "id": "drum_assign_group",
+      "label": "Assign Group Number",
+      "group": "drum",
+      "scope": "drum",
+      "address": "41 m3 rr",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": null,
+      "notes": "m = map number (0/1), rr = drum key number (00-7F)."
+    },
+    {
+      "id": "drum_panpot",
+      "label": "Panpot",
+      "group": "drum",
+      "scope": "drum",
+      "address": "41 m4 rr",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": null,
+      "notes": "m = map number (0/1), rr = drum key number (00-7F).",
+      "equivalentMidi": "NRPN 1C rr"
+    },
+    {
+      "id": "drum_reverb_depth",
+      "label": "Reverb Depth",
+      "group": "drum",
+      "scope": "drum",
+      "address": "41 m5 rr",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": null,
+      "notes": "m = map number (0/1), rr = drum key number (00-7F).",
+      "equivalentMidi": "NRPN 1D rr"
+    },
+    {
+      "id": "drum_chorus_depth",
+      "label": "Chorus Depth",
+      "group": "drum",
+      "scope": "drum",
+      "address": "41 m6 rr",
+      "bytes": 1,
+      "encoding": "u7",
+      "min": 0,
+      "max": 127,
+      "default": null,
+      "notes": "m = map number (0/1), rr = drum key number (00-7F)."
+    },
+    {
+      "id": "drum_rx_note_off",
+      "label": "Rx. Note Off",
+      "group": "drum",
+      "scope": "drum",
+      "address": "41 m7 rr",
+      "bytes": 1,
+      "encoding": "flag",
+      "min": 0,
+      "max": 1,
+      "default": null,
+      "notes": "m = map number (0/1), rr = drum key number (00-7F)."
+    },
+    {
+      "id": "drum_rx_note_on",
+      "label": "Rx. Note On",
+      "group": "drum",
+      "scope": "drum",
+      "address": "41 m8 rr",
+      "bytes": 1,
+      "encoding": "flag",
+      "min": 0,
+      "max": 1,
+      "default": null,
+      "notes": "m = map number (0/1), rr = drum key number (00-7F)."
+    },
+    {
+      "id": "system_information",
+      "label": "System Information (ASCII)",
+      "group": "info",
+      "scope": "system",
+      "address": "40 30 00",
+      "bytes": 32,
+      "encoding": "ascii",
+      "min": 32,
+      "max": 127,
+      "default": null,
+      "readOnly": true,
+      "rq1Only": true,
+      "notes": "Returns \"GS Standard VER=1.11\" style text. RQ1 only."
+    },
+    {
+      "id": "display_text",
+      "label": "Displayed Letters",
+      "group": "display",
+      "scope": "display",
+      "modelId": "45",
+      "address": "10 00 00",
+      "bytes": 32,
+      "encoding": "ascii",
+      "min": 32,
+      "max": 127,
+      "default": 32,
+      "notes": "1 to 32 bytes; scrolls automatically beyond 16 characters."
+    },
+    {
+      "id": "display_dots",
+      "label": "Displayed Dot Data",
+      "group": "display",
+      "scope": "display",
+      "modelId": "45",
+      "address": "10 01 00",
+      "bytes": 64,
+      "encoding": "u7",
+      "min": 0,
+      "max": 31,
+      "default": 0,
+      "notes": "64 bytes d00-d63; bit state 1 = dot on."
+    }
+  ],
+  "midi": {
+    "controlChanges": [
+      {
+        "cc": 0,
+        "name": "Bank Select (MSB only)",
+        "rxSwitch": "rx_control_change"
+      },
+      {
+        "cc": 1,
+        "name": "Modulation",
+        "rxSwitch": "rx_modulation"
+      },
+      {
+        "cc": 5,
+        "name": "Portamento Time"
+      },
+      {
+        "cc": 6,
+        "name": "Data Entry MSB"
+      },
+      {
+        "cc": 38,
+        "name": "Data Entry LSB"
+      },
+      {
+        "cc": 7,
+        "name": "Volume",
+        "rxSwitch": "rx_volume",
+        "partParameter": "part_level"
+      },
+      {
+        "cc": 10,
+        "name": "Panpot",
+        "rxSwitch": "rx_panpot",
+        "partParameter": "part_panpot"
+      },
+      {
+        "cc": 11,
+        "name": "Expression",
+        "rxSwitch": "rx_expression"
+      },
+      {
+        "cc": 64,
+        "name": "Hold1",
+        "rxSwitch": "rx_hold1"
+      },
+      {
+        "cc": 65,
+        "name": "Portamento",
+        "rxSwitch": "rx_portamento"
+      },
+      {
+        "cc": 66,
+        "name": "Sostenuto",
+        "rxSwitch": "rx_sostenuto"
+      },
+      {
+        "cc": 67,
+        "name": "Soft",
+        "rxSwitch": "rx_soft"
+      },
+      {
+        "cc": 91,
+        "name": "Effect1 depth (Reverb send)",
+        "partParameter": "reverb_send_depth"
+      },
+      {
+        "cc": 93,
+        "name": "Effect3 depth (Chorus send)",
+        "partParameter": "chorus_send_depth"
+      },
+      {
+        "cc": 98,
+        "name": "NRPN LSB"
+      },
+      {
+        "cc": 99,
+        "name": "NRPN MSB"
+      },
+      {
+        "cc": 100,
+        "name": "RPN LSB"
+      },
+      {
+        "cc": 101,
+        "name": "RPN MSB"
+      },
+      {
+        "cc": 120,
+        "name": "All Sounds Off"
+      },
+      {
+        "cc": 121,
+        "name": "Reset All Controllers"
+      },
+      {
+        "cc": 123,
+        "name": "All Notes Off"
+      },
+      {
+        "cc": 124,
+        "name": "Omni Off"
+      },
+      {
+        "cc": 125,
+        "name": "Omni On"
+      },
+      {
+        "cc": 126,
+        "name": "Mono"
+      },
+      {
+        "cc": 127,
+        "name": "Poly"
+      }
+    ],
+    "nrpn": [
+      {
+        "msb": "01",
+        "lsb": "08",
+        "name": "Vibrato Rate",
+        "range": "0E..72 (-50..+50), relative",
+        "partParameter": "tone_modify_vibrato_rate"
+      },
+      {
+        "msb": "01",
+        "lsb": "09",
+        "name": "Vibrato Depth",
+        "range": "0E..72",
+        "partParameter": "tone_modify_vibrato_depth"
+      },
+      {
+        "msb": "01",
+        "lsb": "0A",
+        "name": "Vibrato Delay",
+        "range": "0E..72",
+        "partParameter": "tone_modify_vibrato_delay"
+      },
+      {
+        "msb": "01",
+        "lsb": "20",
+        "name": "TVF Cutoff Frequency",
+        "range": "0E..72",
+        "partParameter": "tone_modify_tvf_cutoff"
+      },
+      {
+        "msb": "01",
+        "lsb": "21",
+        "name": "TVF Resonance",
+        "range": "0E..72",
+        "partParameter": "tone_modify_tvf_resonance"
+      },
+      {
+        "msb": "01",
+        "lsb": "63",
+        "name": "TVF&TVA Env. Attack",
+        "range": "0E..72",
+        "partParameter": "tone_modify_env_attack"
+      },
+      {
+        "msb": "01",
+        "lsb": "64",
+        "name": "TVF&TVA Env. Decay",
+        "range": "0E..72",
+        "partParameter": "tone_modify_env_decay"
+      },
+      {
+        "msb": "01",
+        "lsb": "66",
+        "name": "TVF&TVA Env. Release",
+        "range": "0E..72",
+        "partParameter": "tone_modify_env_release"
+      },
+      {
+        "msb": "18",
+        "lsb": "rr",
+        "name": "Drum: Pitch Coarse",
+        "range": "00..7F (-64..+63 semitones)"
+      },
+      {
+        "msb": "1A",
+        "lsb": "rr",
+        "name": "Drum: TVA Level",
+        "range": "00..7F"
+      },
+      {
+        "msb": "1C",
+        "lsb": "rr",
+        "name": "Drum: Panpot",
+        "range": "00 random, 01..7F"
+      },
+      {
+        "msb": "1D",
+        "lsb": "rr",
+        "name": "Drum: Reverb Send Level",
+        "range": "00..7F"
+      }
+    ],
+    "rpn": [
+      {
+        "msb": "00",
+        "lsb": "00",
+        "name": "Pitch Bend Sensitivity",
+        "data": "MSB 00..18 (semitones), LSB ignored"
+      },
+      {
+        "msb": "00",
+        "lsb": "01",
+        "name": "Master Fine Tuning",
+        "data": "MSB/LSB 14 bit, 40 00 = 0"
+      },
+      {
+        "msb": "00",
+        "lsb": "02",
+        "name": "Master Coarse Tuning",
+        "data": "MSB 28..58 (-24..+24 semitones)"
+      },
+      {
+        "msb": "7F",
+        "lsb": "7F",
+        "name": "RPN Reset"
+      }
+    ]
+  },
+  "bulkDump": {
+    "verify": true,
+    "note": "Addresses read from the manual scan (p.82-83); sizes are nibblized. Check before relying on them.",
+    "packetBytes": 128,
+    "patchAll": {
+      "address": "48 00 00",
+      "size": "00 1D 00",
+      "packets": 29
+    },
+    "patchCommon": {
+      "address": "48 00 00",
+      "size": "00 01 00"
+    },
+    "patchPartSize": "00 01 60",
+    "patchParts": {
+      "10": "48 01 00",
+      "1": "48 02 60",
+      "2": "48 04 40",
+      "3": "48 06 20",
+      "4": "48 08 00",
+      "5": "48 09 60",
+      "6": "48 0B 40",
+      "7": "48 0D 20",
+      "8": "48 0F 00",
+      "9": "48 10 60",
+      "11": "48 12 40",
+      "12": "48 14 20",
+      "13": "48 16 00",
+      "14": "48 17 60",
+      "15": "48 19 40",
+      "16": "48 1B 20"
+    },
+    "drumMapParameters": {
+      "baseAddress": "49 mx 00",
+      "size": "00 02 00",
+      "items": [
+        "play key number",
+        "level",
+        "assign group number",
+        "panpot",
+        "reverb depth",
+        "chorus depth",
+        "rx note on/off",
+        "drum map name"
+      ]
+    }
+  },
+  "instruments": {
+    "note": "programChange value = pc - 1. Capital tones use CC0 = 0. Variations use the listed CC0 value with the same program change.",
+    "capital": [
+      {
+        "pc": 1,
+        "name": "Piano 1"
+      },
+      {
+        "pc": 2,
+        "name": "Piano 2"
+      },
+      {
+        "pc": 3,
+        "name": "Piano 3"
+      },
+      {
+        "pc": 4,
+        "name": "Honky-tonk"
+      },
+      {
+        "pc": 5,
+        "name": "E. Piano 1"
+      },
+      {
+        "pc": 6,
+        "name": "E. Piano 2"
+      },
+      {
+        "pc": 7,
+        "name": "Harpsichord"
+      },
+      {
+        "pc": 8,
+        "name": "Clav."
+      },
+      {
+        "pc": 9,
+        "name": "Celesta"
+      },
+      {
+        "pc": 10,
+        "name": "Glockenspiel"
+      },
+      {
+        "pc": 11,
+        "name": "Music Box"
+      },
+      {
+        "pc": 12,
+        "name": "Vibraphone"
+      },
+      {
+        "pc": 13,
+        "name": "Marimba"
+      },
+      {
+        "pc": 14,
+        "name": "Xylophone"
+      },
+      {
+        "pc": 15,
+        "name": "Tubular-bell"
+      },
+      {
+        "pc": 16,
+        "name": "Santur"
+      },
+      {
+        "pc": 17,
+        "name": "Organ 1"
+      },
+      {
+        "pc": 18,
+        "name": "Organ 2"
+      },
+      {
+        "pc": 19,
+        "name": "Organ 3"
+      },
+      {
+        "pc": 20,
+        "name": "Church Org. 1"
+      },
+      {
+        "pc": 21,
+        "name": "Reed Organ"
+      },
+      {
+        "pc": 22,
+        "name": "Accordion Fr"
+      },
+      {
+        "pc": 23,
+        "name": "Harmonica"
+      },
+      {
+        "pc": 24,
+        "name": "Bandneon"
+      },
+      {
+        "pc": 25,
+        "name": "Nylon-str. Gt"
+      },
+      {
+        "pc": 26,
+        "name": "Steel-Str. Gt"
+      },
+      {
+        "pc": 27,
+        "name": "Jazz Gt."
+      },
+      {
+        "pc": 28,
+        "name": "Clean Gt."
+      },
+      {
+        "pc": 29,
+        "name": "Muted Gt."
+      },
+      {
+        "pc": 30,
+        "name": "Overdrive Gt"
+      },
+      {
+        "pc": 31,
+        "name": "DistortionGt"
+      },
+      {
+        "pc": 32,
+        "name": "Gt. Harmonics"
+      },
+      {
+        "pc": 33,
+        "name": "Acoustic Bs."
+      },
+      {
+        "pc": 34,
+        "name": "Fingered Bs."
+      },
+      {
+        "pc": 35,
+        "name": "Picked Bs."
+      },
+      {
+        "pc": 36,
+        "name": "Fretless Bs."
+      },
+      {
+        "pc": 37,
+        "name": "Slap Bs. 1"
+      },
+      {
+        "pc": 38,
+        "name": "Slap Bs. 2"
+      },
+      {
+        "pc": 39,
+        "name": "Synth Bass 1"
+      },
+      {
+        "pc": 40,
+        "name": "Synth Bass 2"
+      },
+      {
+        "pc": 41,
+        "name": "Violin"
+      },
+      {
+        "pc": 42,
+        "name": "Viola"
+      },
+      {
+        "pc": 43,
+        "name": "Cello"
+      },
+      {
+        "pc": 44,
+        "name": "Contrabass"
+      },
+      {
+        "pc": 45,
+        "name": "Tremolo Str"
+      },
+      {
+        "pc": 46,
+        "name": "PizzicatoStr"
+      },
+      {
+        "pc": 47,
+        "name": "Harp"
+      },
+      {
+        "pc": 48,
+        "name": "Timpani"
+      },
+      {
+        "pc": 49,
+        "name": "Strings"
+      },
+      {
+        "pc": 50,
+        "name": "Slow Strings"
+      },
+      {
+        "pc": 51,
+        "name": "Syn. Strings1"
+      },
+      {
+        "pc": 52,
+        "name": "Syn. Strings2"
+      },
+      {
+        "pc": 53,
+        "name": "Choir Aahs"
+      },
+      {
+        "pc": 54,
+        "name": "Voice Oohs"
+      },
+      {
+        "pc": 55,
+        "name": "SynVox"
+      },
+      {
+        "pc": 56,
+        "name": "OrchestraHit"
+      },
+      {
+        "pc": 57,
+        "name": "Trumpet"
+      },
+      {
+        "pc": 58,
+        "name": "Trombone"
+      },
+      {
+        "pc": 59,
+        "name": "Tuba"
+      },
+      {
+        "pc": 60,
+        "name": "MutedTrumpet"
+      },
+      {
+        "pc": 61,
+        "name": "French Horn"
+      },
+      {
+        "pc": 62,
+        "name": "Brass 1"
+      },
+      {
+        "pc": 63,
+        "name": "Synth Brass1"
+      },
+      {
+        "pc": 64,
+        "name": "Synth Brass2"
+      },
+      {
+        "pc": 65,
+        "name": "Soprano sax"
+      },
+      {
+        "pc": 66,
+        "name": "Alto sax"
+      },
+      {
+        "pc": 67,
+        "name": "Tenor sax"
+      },
+      {
+        "pc": 68,
+        "name": "Baritone sax"
+      },
+      {
+        "pc": 69,
+        "name": "Oboe"
+      },
+      {
+        "pc": 70,
+        "name": "English Horn"
+      },
+      {
+        "pc": 71,
+        "name": "Bassoon"
+      },
+      {
+        "pc": 72,
+        "name": "Clarinet"
+      },
+      {
+        "pc": 73,
+        "name": "Piccolo"
+      },
+      {
+        "pc": 74,
+        "name": "Flute"
+      },
+      {
+        "pc": 75,
+        "name": "Recorder"
+      },
+      {
+        "pc": 76,
+        "name": "Pan flute"
+      },
+      {
+        "pc": 77,
+        "name": "Bottle Blow"
+      },
+      {
+        "pc": 78,
+        "name": "Shakuhachi"
+      },
+      {
+        "pc": 79,
+        "name": "Whistle"
+      },
+      {
+        "pc": 80,
+        "name": "Ocarina"
+      },
+      {
+        "pc": 81,
+        "name": "Square Wave"
+      },
+      {
+        "pc": 82,
+        "name": "Saw Wave"
+      },
+      {
+        "pc": 83,
+        "name": "Syn. Calliope"
+      },
+      {
+        "pc": 84,
+        "name": "Chiffer Lead"
+      },
+      {
+        "pc": 85,
+        "name": "Charang"
+      },
+      {
+        "pc": 86,
+        "name": "Solo Vox"
+      },
+      {
+        "pc": 87,
+        "name": "5th Saw Wave"
+      },
+      {
+        "pc": 88,
+        "name": "Bass&Lead"
+      },
+      {
+        "pc": 89,
+        "name": "Fantasia"
+      },
+      {
+        "pc": 90,
+        "name": "Warm Pad"
+      },
+      {
+        "pc": 91,
+        "name": "Polysynth"
+      },
+      {
+        "pc": 92,
+        "name": "Space Voice"
+      },
+      {
+        "pc": 93,
+        "name": "Bowed Glass"
+      },
+      {
+        "pc": 94,
+        "name": "Metal Pad"
+      },
+      {
+        "pc": 95,
+        "name": "Halo Pad"
+      },
+      {
+        "pc": 96,
+        "name": "Sweep Pad"
+      },
+      {
+        "pc": 97,
+        "name": "Ice Rain"
+      },
+      {
+        "pc": 98,
+        "name": "Soundtrack"
+      },
+      {
+        "pc": 99,
+        "name": "Crystal"
+      },
+      {
+        "pc": 100,
+        "name": "Atmosphere"
+      },
+      {
+        "pc": 101,
+        "name": "Brightness"
+      },
+      {
+        "pc": 102,
+        "name": "Goblin"
+      },
+      {
+        "pc": 103,
+        "name": "Echo Drops"
+      },
+      {
+        "pc": 104,
+        "name": "Star Theme"
+      },
+      {
+        "pc": 105,
+        "name": "Sitar"
+      },
+      {
+        "pc": 106,
+        "name": "Banjo"
+      },
+      {
+        "pc": 107,
+        "name": "Shamisen"
+      },
+      {
+        "pc": 108,
+        "name": "Koto"
+      },
+      {
+        "pc": 109,
+        "name": "Kalimba"
+      },
+      {
+        "pc": 110,
+        "name": "Bag Pipe"
+      },
+      {
+        "pc": 111,
+        "name": "Fiddle"
+      },
+      {
+        "pc": 112,
+        "name": "Shanai"
+      },
+      {
+        "pc": 113,
+        "name": "Tinkle Bell"
+      },
+      {
+        "pc": 114,
+        "name": "Agogo"
+      },
+      {
+        "pc": 115,
+        "name": "Steel Drums"
+      },
+      {
+        "pc": 116,
+        "name": "Woodblock"
+      },
+      {
+        "pc": 117,
+        "name": "Taiko"
+      },
+      {
+        "pc": 118,
+        "name": "Melo Tom 1"
+      },
+      {
+        "pc": 119,
+        "name": "Synth Drum"
+      },
+      {
+        "pc": 120,
+        "name": "Reverse Cym."
+      },
+      {
+        "pc": 121,
+        "name": "Gt. FretNoise"
+      },
+      {
+        "pc": 122,
+        "name": "Fl. Keyclick"
+      },
+      {
+        "pc": 123,
+        "name": "Seashore"
+      },
+      {
+        "pc": 124,
+        "name": "Bird"
+      },
+      {
+        "pc": 125,
+        "name": "Telephone 1"
+      },
+      {
+        "pc": 126,
+        "name": "Helicopter"
+      },
+      {
+        "pc": 127,
+        "name": "Applause"
+      },
+      {
+        "pc": 128,
+        "name": "Gun Shot"
+      }
+    ],
+    "variations": [
+      {
+        "pc": 5,
+        "cc0": 8,
+        "name": "Detuned EP 1"
+      },
+      {
+        "pc": 6,
+        "cc0": 8,
+        "name": "Detuned EP 2"
+      },
+      {
+        "pc": 7,
+        "cc0": 8,
+        "name": "Coupled Hps."
+      },
+      {
+        "pc": 15,
+        "cc0": 8,
+        "name": "Church Bell"
+      },
+      {
+        "pc": 17,
+        "cc0": 8,
+        "name": "Detuned Or. 1"
+      },
+      {
+        "pc": 18,
+        "cc0": 8,
+        "name": "Detuned Or. 2"
+      },
+      {
+        "pc": 20,
+        "cc0": 8,
+        "name": "Church Org. 2"
+      },
+      {
+        "pc": 22,
+        "cc0": 8,
+        "name": "Accordion It"
+      },
+      {
+        "pc": 25,
+        "cc0": 8,
+        "name": "Ukulele"
+      },
+      {
+        "pc": 26,
+        "cc0": 8,
+        "name": "12-str. Gt"
+      },
+      {
+        "pc": 26,
+        "cc0": 16,
+        "name": "Mandolin"
+      },
+      {
+        "pc": 27,
+        "cc0": 8,
+        "name": "Hawaiian Gt."
+      },
+      {
+        "pc": 28,
+        "cc0": 8,
+        "name": "Chorus Gt."
+      },
+      {
+        "pc": 29,
+        "cc0": 8,
+        "name": "Funk Gt."
+      },
+      {
+        "pc": 31,
+        "cc0": 8,
+        "name": "Feedback Gt."
+      },
+      {
+        "pc": 32,
+        "cc0": 8,
+        "name": "Gt. Feedback"
+      },
+      {
+        "pc": 39,
+        "cc0": 8,
+        "name": "Synth Bass 3"
+      },
+      {
+        "pc": 40,
+        "cc0": 8,
+        "name": "Synth Bass 4"
+      },
+      {
+        "pc": 49,
+        "cc0": 8,
+        "name": "Orchestra"
+      },
+      {
+        "pc": 51,
+        "cc0": 8,
+        "name": "Syn. Strings3"
+      },
+      {
+        "pc": 62,
+        "cc0": 8,
+        "name": "Brass 2"
+      },
+      {
+        "pc": 63,
+        "cc0": 8,
+        "name": "Synth Brass3"
+      },
+      {
+        "pc": 64,
+        "cc0": 8,
+        "name": "Synth Brass4"
+      },
+      {
+        "pc": 108,
+        "cc0": 8,
+        "name": "Taisho Koto"
+      },
+      {
+        "pc": 116,
+        "cc0": 8,
+        "name": "Castanets"
+      },
+      {
+        "pc": 117,
+        "cc0": 8,
+        "name": "Concert BD"
+      },
+      {
+        "pc": 118,
+        "cc0": 8,
+        "name": "Melo Tom 2"
+      },
+      {
+        "pc": 119,
+        "cc0": 8,
+        "name": "808 Tom"
+      },
+      {
+        "pc": 121,
+        "cc0": 1,
+        "name": "Gt. Cut Noise"
+      },
+      {
+        "pc": 121,
+        "cc0": 2,
+        "name": "String Slap"
+      },
+      {
+        "pc": 123,
+        "cc0": 1,
+        "name": "Rain"
+      },
+      {
+        "pc": 123,
+        "cc0": 2,
+        "name": "Thunder"
+      },
+      {
+        "pc": 123,
+        "cc0": 3,
+        "name": "Wind"
+      },
+      {
+        "pc": 123,
+        "cc0": 4,
+        "name": "Stream"
+      },
+      {
+        "pc": 123,
+        "cc0": 5,
+        "name": "Bubble"
+      },
+      {
+        "pc": 124,
+        "cc0": 1,
+        "name": "Dog"
+      },
+      {
+        "pc": 124,
+        "cc0": 2,
+        "name": "Horse"
+      },
+      {
+        "pc": 125,
+        "cc0": 1,
+        "name": "Telephone 2"
+      },
+      {
+        "pc": 125,
+        "cc0": 2,
+        "name": "DoorCreaking"
+      },
+      {
+        "pc": 125,
+        "cc0": 3,
+        "name": "Door"
+      },
+      {
+        "pc": 125,
+        "cc0": 4,
+        "name": "Scratch"
+      },
+      {
+        "pc": 125,
+        "cc0": 5,
+        "name": "Windchime"
+      },
+      {
+        "pc": 126,
+        "cc0": 1,
+        "name": "Car-engine"
+      },
+      {
+        "pc": 126,
+        "cc0": 2,
+        "name": "Car-stop"
+      },
+      {
+        "pc": 126,
+        "cc0": 3,
+        "name": "Car-pass"
+      },
+      {
+        "pc": 126,
+        "cc0": 4,
+        "name": "Car-crash"
+      },
+      {
+        "pc": 126,
+        "cc0": 5,
+        "name": "Siren"
+      },
+      {
+        "pc": 126,
+        "cc0": 6,
+        "name": "Train"
+      },
+      {
+        "pc": 126,
+        "cc0": 7,
+        "name": "Jetplane"
+      },
+      {
+        "pc": 126,
+        "cc0": 8,
+        "name": "Starship"
+      },
+      {
+        "pc": 126,
+        "cc0": 9,
+        "name": "Burst Noise"
+      },
+      {
+        "pc": 127,
+        "cc0": 1,
+        "name": "Laughing"
+      },
+      {
+        "pc": 127,
+        "cc0": 2,
+        "name": "Screaming"
+      },
+      {
+        "pc": 127,
+        "cc0": 3,
+        "name": "Punch"
+      },
+      {
+        "pc": 127,
+        "cc0": 4,
+        "name": "Heart Beat"
+      },
+      {
+        "pc": 127,
+        "cc0": 5,
+        "name": "Footstep"
+      },
+      {
+        "pc": 128,
+        "cc0": 1,
+        "name": "Machinegun"
+      },
+      {
+        "pc": 128,
+        "cc0": 2,
+        "name": "Lasergun"
+      },
+      {
+        "pc": 128,
+        "cc0": 3,
+        "name": "Explosion"
+      }
+    ],
+    "mt32Set": {
+      "cc0": 127,
+      "note": "128 MT-32 instrument names (manual p.69) not included in this file."
+    },
+    "drumSets": [
+      {
+        "pc": 1,
+        "name": "Standard Set"
+      },
+      {
+        "pc": 9,
+        "name": "Room Set"
+      },
+      {
+        "pc": 17,
+        "name": "Power Set"
+      },
+      {
+        "pc": 25,
+        "name": "Electronic Set"
+      },
+      {
+        "pc": 26,
+        "name": "TR-808 Set"
+      },
+      {
+        "pc": 33,
+        "name": "Jazz Set"
+      },
+      {
+        "pc": 41,
+        "name": "Brush Set"
+      },
+      {
+        "pc": 49,
+        "name": "Orchestra Set"
+      },
+      {
+        "pc": 57,
+        "name": "SFX Set"
+      },
+      {
+        "pc": 128,
+        "name": "CM-64/32L Set"
+      }
+    ]
+  }
+}
