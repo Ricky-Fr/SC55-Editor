@@ -1,17 +1,25 @@
 # Roland SC-55 Editor
 
 An editor tailored for the Roland SC-55 hardware unit. It allows you to tweak and control hardware parameters directly from your PC. A dedicated VST plugin version (designed specifically for Ableton Live in my workflow) is planned as a future development phase.
+Using Vibe Coding with Claude
 
 The current version is fully functional and supports tweaking all main parameters.
 
 ---
 
 ## 🚀 Upcoming Features
-- [ ] **Preset Management** (High priority)
-- [ ] **Mute Button** integration
+- [ ] **effects parameters**
 - [ ] **VST Plugin Version** (for DAW integration)
 
 ---
+
+<img width="722" height="628" alt="sc55-1" src="https://github.com/user-attachments/assets/a770e78a-2293-462e-b3f7-d5a9064b2f61" />
+
+Main windows
+
+<img width="722" height="628" alt="sc55-2" src="https://github.com/user-attachments/assets/53df4b6f-9797-45de-a124-15c1cc1c27da" />
+
+View windows
 
 ## 🛠️ Testing Setup & Environment
 
