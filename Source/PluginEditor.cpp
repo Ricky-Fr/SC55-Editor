@@ -3,32 +3,60 @@
 namespace
 {
     const juce::Colour kGlobalThumbColour (0xffff9a2e);   // curseur orange quand le slider est en mode global
+    const juce::Colour kMuteColour (0xffff4d3d);          // voyant MUTE : rouge
+    const juce::Colour kSoloColour (0xffffd23a);          // voyant SOLO : jaune
 }
 
 SC55Editor::SC55Editor (SC55Processor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
-    // --- Part + bouton ALL ---
+    setLookAndFeel (&lookAndFeel);
+
+    // --- Presets ---
+    presetLabel.setColour (juce::Label::textColourId, juce::Colour (0xffd0d0d0));
+    addAndMakeVisible (presetLabel);
+
+    presetBox.setEditableText (true);   // on peut saisir le nom d'un nouveau preset
+    presetBox.onChange = [this] { onPresetSelected(); };
+    addAndMakeVisible (presetBox);
+
+    saveButton.onClick = [this] { onSavePreset(); };
+    addAndMakeVisible (saveButton);
+
+    deleteButton.onClick = [this] { onDeletePreset(); };
+    addAndMakeVisible (deleteButton);
+
+    // --- Part + boutons ALL / MUTE / SOLO ---
     for (int i = 1; i <= 16; ++i)
         partBox.addItem ("Part " + juce::String (i), i);
     partBox.setSelectedId (1, juce::dontSendNotification);
-    partBox.onChange = [this]
-    {
-        populateInstrumentBox();
-        refreshInstrument();
-        refreshSlidersFromState();
-    };
+    partBox.onChange = [this] { refreshForCurrentPart(); };
     addAndMakeVisible (partBox);
 
     allButton.onClick = [this]
     {
         updateLedStates();
         refreshSlidersFromState();
+        refreshMixLeds();
         status.setText (allButton.getToggleState() ? "ALL actif : commandes globales possibles"
                                                    : "ALL inactif : reglages de la part",
                         juce::dontSendNotification);
     };
     addAndMakeVisible (allButton);
+
+    // MUTE et SOLO affichent l'etat du modele : ils ne basculent pas tout seuls au clic
+    muteButton.setLitColour (kMuteColour);
+    muteButton.setClickingTogglesState (false);
+    muteButton.onClick = [this] { onMuteClicked(); };
+    addAndMakeVisible (muteButton);
+
+    soloButton.setLitColour (kSoloColour);
+    soloButton.setClickingTogglesState (false);
+    soloButton.onClick = [this] { onSoloClicked(); };
+    addAndMakeVisible (soloButton);
+
+    viewButton.onClick = [this] { showPartList (true); };
+    addAndMakeVisible (viewButton);
 
     // --- Liste des instruments ---
     instrumentBox.onChange = [this] { onInstrumentBoxChanged(); };
@@ -112,17 +140,61 @@ SC55Editor::SC55Editor (SC55Processor& p)
     status.setJustificationType (juce::Justification::centredLeft);
     addAndMakeVisible (status);
 
+    // --- Ecran des 16 parts (cache au demarrage) ---
+    partListView.onEditRequested = [this] (int part)
+    {
+        partBox.setSelectedId (part + 1, juce::dontSendNotification);
+        showPartList (false);
+        refreshForCurrentPart();
+        status.setText ("Edition de la Part " + juce::String (part + 1), juce::dontSendNotification);
+    };
+    partListView.onCloseRequested = [this] { showPartList (false); };
+    partListView.isAllActive = [this] { return allButton.getToggleState(); };
+    partListView.onStatus = [this] (const juce::String& text) { status.setText (text, juce::dontSendNotification); };
+    addChildComponent (partListView);
+
+    populatePresetBox();
+    refreshForCurrentPart();
+
+    setSize (720, 600);
+}
+
+SC55Editor::~SC55Editor()
+{
+    stopTimer();
+    setLookAndFeel (nullptr);
+}
+
+// ---------------------------------------------------------------------------
+// Rafraichissement de l'affichage
+// ---------------------------------------------------------------------------
+
+void SC55Editor::refreshForCurrentPart()
+{
     populateInstrumentBox();
     refreshInstrument();
     updateLedStates();
     refreshSlidersFromState();
+    refreshMixLeds();
 
-    setSize (720, 520);
+    if (partListView.isVisible())
+        partListView.refresh();
 }
 
-// ---------------------------------------------------------------------------
-// Mode global
-// ---------------------------------------------------------------------------
+void SC55Editor::showPartList (bool shouldShow)
+{
+    if (shouldShow)
+    {
+        partListView.refresh();
+        partListView.setVisible (true);
+        partListView.toFront (false);
+    }
+    else
+    {
+        partListView.setVisible (false);
+        refreshMixLeds();   // le mute / solo a pu changer dans la liste
+    }
+}
 
 // La commande est globale seulement si ALL ET le bouton GLOBAL du slider sont allumes
 bool SC55Editor::isGlobalActive (int paramId) const
@@ -143,6 +215,173 @@ void SC55Editor::updateLedStates()
     for (auto& button : globalButtons)
         if (button != nullptr)
             button->setEffectiveActive (all);
+}
+
+// MUTE : avec ALL = mute des 16 parts, sans ALL = mute de la part courante.
+// SOLO : allume si la part courante est en solo.
+void SC55Editor::refreshMixLeds()
+{
+    const int part = currentPart();
+    const bool all = allButton.getToggleState();
+
+    muteButton.setToggleState (all ? audioProcessor.areAllMuted() : audioProcessor.isPartMuted (part),
+                               juce::dontSendNotification);
+    soloButton.setToggleState (audioProcessor.isPartSoloed (part), juce::dontSendNotification);
+}
+
+// ---------------------------------------------------------------------------
+// Mute / Solo
+// ---------------------------------------------------------------------------
+
+void SC55Editor::onMuteClicked()
+{
+    const int part = currentPart();
+
+    if (allButton.getToggleState())
+    {
+        const bool newState = ! audioProcessor.areAllMuted();
+        audioProcessor.setAllMuted (newState);
+        status.setText (juce::String ("MUTE des 16 parts ") + (newState ? "ON" : "OFF"),
+                        juce::dontSendNotification);
+    }
+    else
+    {
+        const bool newState = ! audioProcessor.isPartMuted (part);
+        audioProcessor.setPartMuted (part, newState);
+        status.setText ("Part " + juce::String (part + 1) + " MUTE " + (newState ? "ON" : "OFF"),
+                        juce::dontSendNotification);
+    }
+
+    refreshMixLeds();
+    if (partListView.isVisible())
+        partListView.refresh();
+}
+
+void SC55Editor::onSoloClicked()
+{
+    const int part = currentPart();
+
+    audioProcessor.toggleSolo (part, allButton.getToggleState());
+
+    status.setText ("Part " + juce::String (part + 1) + " SOLO "
+                        + (audioProcessor.isPartSoloed (part) ? "ON" : "OFF"),
+                    juce::dontSendNotification);
+
+    refreshMixLeds();
+    if (partListView.isVisible())
+        partListView.refresh();
+}
+
+// ---------------------------------------------------------------------------
+// Presets
+// ---------------------------------------------------------------------------
+
+void SC55Editor::populatePresetBox()
+{
+    presetBox.clear (juce::dontSendNotification);
+
+    const auto names = audioProcessor.getPresetManager().getPresetNames();
+    for (int i = 0; i < names.size(); ++i)
+        presetBox.addItem (names[i], i + 1);
+
+    presetBox.setText (audioProcessor.getCurrentPresetName(), juce::dontSendNotification);
+}
+
+void SC55Editor::onPresetSelected()
+{
+    disarmDelete();
+
+    const int id = presetBox.getSelectedId();
+    if (id <= 0)
+        return;   // texte en cours de saisie : rien a charger
+
+    const auto name = presetBox.getItemText (id - 1);
+
+    if (audioProcessor.loadPreset (name, true))
+    {
+        refreshForCurrentPart();
+        status.setText ("Envoi du preset " + name + " au SC-55 en cours...", juce::dontSendNotification);
+
+        // Quand la file d'envoi est vide, tous les messages sont partis
+        juce::Component::SafePointer<SC55Editor> safeThis (this);
+        audioProcessor.runWhenSendingFinished ([safeThis, name]
+        {
+            if (safeThis != nullptr)
+                safeThis->status.setText (juce::String::fromUTF8 ("Preset charg\xc3\xa9 : ") + name
+                                              + " (fin d'envoi au SC-55)",
+                                          juce::dontSendNotification);
+        });
+    }
+    else
+    {
+        status.setText ("Preset introuvable : " + name, juce::dontSendNotification);
+    }
+}
+
+void SC55Editor::onSavePreset()
+{
+    disarmDelete();
+
+    const auto name = presetBox.getText().trim();
+    juce::String error;
+
+    if (audioProcessor.saveCurrentAsPreset (name, error))
+    {
+        populatePresetBox();
+        status.setText ("Preset enregistre : " + audioProcessor.getCurrentPresetName(),
+                        juce::dontSendNotification);
+    }
+    else
+    {
+        status.setText (error, juce::dontSendNotification);
+    }
+}
+
+// Suppression en deux clics : le premier arme le bouton ("Confirmer ?"), le second supprime
+void SC55Editor::onDeletePreset()
+{
+    const auto name = audioProcessor.getCurrentPresetName();
+    const auto& presets = audioProcessor.getPresetManager();
+
+    if (name.isEmpty() || presets.isDefault (name) || ! presets.exists (name))
+    {
+        disarmDelete();
+        status.setText ("Aucun preset utilisateur a supprimer (Default est protege)",
+                        juce::dontSendNotification);
+        return;
+    }
+
+    if (! deleteArmed)
+    {
+        deleteArmed = true;
+        deleteButton.setButtonText ("Confirmer ?");
+        startTimer (3000);
+        return;
+    }
+
+    disarmDelete();
+
+    if (audioProcessor.deletePreset (name))
+    {
+        populatePresetBox();
+        status.setText ("Preset supprime : " + name, juce::dontSendNotification);
+    }
+    else
+    {
+        status.setText ("Suppression impossible : " + name, juce::dontSendNotification);
+    }
+}
+
+void SC55Editor::disarmDelete()
+{
+    deleteArmed = false;
+    stopTimer();
+    deleteButton.setButtonText ("Suppr.");
+}
+
+void SC55Editor::timerCallback()
+{
+    disarmDelete();
 }
 
 // ---------------------------------------------------------------------------
@@ -345,19 +584,36 @@ void SC55Editor::resized()
     auto area = getLocalBounds().reduced (16);
     area.removeFromTop (28);                                   // titre
 
-    // Ligne Part (liste raccourcie) + bouton ALL
+    // Ligne Preset : liste editable + disquette + suppression
+    auto presetRow = area.removeFromTop (28);
+    presetLabel.setBounds (presetRow.removeFromLeft (64));
+    deleteButton.setBounds (presetRow.removeFromRight (80));
+    presetRow.removeFromRight (6);
+    saveButton.setBounds (presetRow.removeFromRight (34));
+    presetRow.removeFromRight (6);
+    presetBox.setBounds (presetRow);
+    area.removeFromTop (8);
+
+    // Ligne de statut : toujours visible, meme avec l'ecran des 16 parts
+    status.setBounds (area.removeFromBottom (28));
+    area.removeFromBottom (8);
+
+    // L'ecran des 16 parts recouvre toute la zone de reglage
+    partListView.setBounds (area);
+
+    // Ligne Part (liste raccourcie) + ALL / MUTE / SOLO, et VIEW sous le bouton Suppr.
     auto topRow = area.removeFromTop (28);
+    viewButton.setBounds (topRow.removeFromRight (80));
     partBox.setBounds (topRow.removeFromLeft (130));
     topRow.removeFromLeft (14);
     allButton.setBounds (topRow.removeFromLeft (70));
+    muteButton.setBounds (topRow.removeFromLeft (78));
+    soloButton.setBounds (topRow.removeFromLeft (78));
     area.removeFromTop (8);
 
     // Liste des instruments sur toute la largeur
     instrumentBox.setBounds (area.removeFromTop (28));
     area.removeFromTop (12);
-
-    status.setBounds (area.removeFromBottom (28));
-    area.removeFromBottom (8);
 
     auto buttons = area.removeFromBottom (32);
     resetButton.setBounds (buttons.removeFromLeft (buttons.getWidth() / 2 - 4));

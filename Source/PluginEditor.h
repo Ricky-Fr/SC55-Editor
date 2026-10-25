@@ -7,12 +7,16 @@
 #include "InstrumentData.h"
 #include "SysExParamSlider.h"
 #include "RoundLedButton.h"
+#include "FloppyButton.h"
+#include "PartListView.h"
+#include "SC55LookAndFeel.h"
 
-class SC55Editor : public juce::AudioProcessorEditor
+class SC55Editor : public juce::AudioProcessorEditor,
+                   private juce::Timer
 {
 public:
     explicit SC55Editor (SC55Processor&);
-    ~SC55Editor() override = default;
+    ~SC55Editor() override;
 
     void paint (juce::Graphics&) override;
     void resized() override;
@@ -26,20 +30,49 @@ private:
     int  currentPart() const              { return partBox.getSelectedId() - 1; }
     bool isGlobalActive (int paramId) const;
 
+    // Affichage
+    void refreshForCurrentPart();
     void populateInstrumentBox();
     void updateInstrumentBoxSelection();
     void refreshInstrument();
     void refreshSlidersFromState();
     void updateLedStates();
+    void refreshMixLeds();
+    void showPartList (bool shouldShow);
 
+    // Sliders et instrument
     void onParamSliderChanged (int paramId, int displayValue, bool immediate);
     void onInstrumentSliderChanged (int displayValue, bool immediate);
     void onInstrumentBoxChanged();
 
+    // Mute / solo
+    void onMuteClicked();
+    void onSoloClicked();
+
+    // Presets
+    void populatePresetBox();
+    void onPresetSelected();
+    void onSavePreset();
+    void onDeletePreset();
+    void disarmDelete();
+    void timerCallback() override;      // annule la confirmation de suppression
+
+    SC55LookAndFeel lookAndFeel;       // declaree en premier : detruite en dernier
     SC55Processor& audioProcessor;
 
+    // Presets
+    juce::Label      presetLabel { {}, "PRESET" };
+    juce::ComboBox   presetBox;
+    FloppyButton     saveButton;
+    juce::TextButton deleteButton { "Suppr." };
+    bool             deleteArmed = false;
+
+    // Part, ALL, MUTE, SOLO, VIEW
     juce::ComboBox   partBox;
-    RoundLedButton   allButton { "ALL", 13.0f, 18.0f };
+    RoundLedButton   allButton  { "ALL",  13.0f, 18.0f };
+    RoundLedButton   muteButton { "MUTE", 13.0f, 18.0f };
+    RoundLedButton   soloButton { "SOLO", 13.0f, 18.0f };
+    juce::TextButton viewButton { "VIEW" };
     juce::ComboBox   instrumentBox;
 
     std::array<juce::Label, kNumColumns> labels;
@@ -49,6 +82,9 @@ private:
     juce::TextButton resetButton  { "GS Reset" };
     juce::TextButton resendButton { "Renvoyer l'etat" };
     juce::Label      status;
+
+    // Ecran des 16 parts, superpose a l'ecran de reglage d'une part
+    PartListView     partListView { audioProcessor };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SC55Editor)
 };

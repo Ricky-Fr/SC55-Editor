@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(SC55Editor VERSION 0.1.4)
+project(SC55Editor VERSION 0.1.7)
 
 include(FetchContent)
 FetchContent_Declare(
@@ -33,6 +33,12 @@ target_sources(SC55Editor PRIVATE
     Source/PartParams.h
     Source/InstrumentData.h
     Source/RoundLedButton.h
+    Source/FloppyButton.h
+    Source/PartListView.cpp
+    Source/PartListView.h
+    Source/PresetManager.cpp
+    Source/PresetManager.h
+    Source/SC55LookAndFeel.h
     Source/SC55Config.h)
 
 target_compile_definitions(SC55Editor PUBLIC

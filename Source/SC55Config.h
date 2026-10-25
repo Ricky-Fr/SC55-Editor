@@ -24,4 +24,24 @@ namespace SC55Config
 
     // Pause avant le message suivant apres un GS Reset (ms).
     constexpr int kAfterGsResetDelayMs = 100;
+
+    // Au demarrage, le dernier preset est recharge dans l'editeur.
+    // true  : il est aussi envoye au SC-55 (environ 3 s de messages SysEx)
+    // false : l'editeur l'affiche seulement ; utiliser "Renvoyer l'etat" pour l'envoyer
+    constexpr bool kSendPresetOnStartup = false;
+
+    // Quand une part devient muette, un "All Sounds Off" est envoye sur son canal MIDI
+    // pour couper les notes deja en cours (sinon elles continueraient a sonner).
+    // Ignore si une autre part encore audible partage le meme canal.
+    constexpr bool kSilenceHangingNotesOnMute = true;
+
+    // Reperes blancs discrets sur tous les sliders : valeur min, valeur mediane, valeur max.
+    constexpr float kSliderMarkAlpha     = 0.55f;   // opacite du blanc (0 = invisible, 1 = plein)
+    constexpr float kSliderMarkThickness = 1.0f;    // epaisseur d'un repere (px)
+    constexpr float kSliderMarkGap       = 3.0f;    // ecart entre le curseur et un repere lateral (px)
+    constexpr float kSliderMarkLength    = 7.0f;    // longueur d'un repere lateral (px)
+
+    // true  : les reperes min et max sont des barres qui traversent la piste
+    // false : comme le repere median, ils restent de part et d'autre de la piste
+    constexpr bool kSliderEndMarksCrossTrack = true;
 }

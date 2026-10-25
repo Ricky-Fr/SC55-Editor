@@ -28,6 +28,9 @@ public:
     void enqueue (juce::uint32 key, const juce::MidiMessage& message,
                   bool immediate = false, int quietAfterMs = 0);
 
+    // Appelle le callback une seule fois, quand tous les messages en attente ont ete envoyes
+    void runWhenEmpty (std::function<void()> callback);
+
     void clear();
 
 private:
@@ -47,6 +50,7 @@ private:
     void timerCallback() override;
 
     Sink sink;
+    std::function<void()> emptyCallback;
     std::vector<Entry> entries;
     juce::uint32 sequence = 0;
 

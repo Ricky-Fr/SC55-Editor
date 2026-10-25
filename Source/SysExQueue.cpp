@@ -13,7 +13,16 @@ SysExQueue::~SysExQueue()
 void SysExQueue::clear()
 {
     entries.clear();
+    emptyCallback = nullptr;
     stopTimer();
+}
+
+void SysExQueue::runWhenEmpty (std::function<void()> callback)
+{
+    emptyCallback = std::move (callback);
+
+    if (! isTimerRunning())
+        startTimer (SC55Config::kQueueTickMs);   // le prochain tick constate que la file est vide
 }
 
 void SysExQueue::enqueue (juce::uint32 key, const juce::MidiMessage& message,
@@ -74,6 +83,13 @@ void SysExQueue::timerCallback()
     if (! anyDirty)
     {
         stopTimer();
+
+        if (emptyCallback)
+        {
+            auto callback = std::move (emptyCallback);
+            emptyCallback = nullptr;
+            callback();
+        }
         return;
     }
 

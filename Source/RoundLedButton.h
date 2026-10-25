@@ -17,6 +17,13 @@ public:
         setMouseCursor (juce::MouseCursor::PointingHandCursor);
     }
 
+    // Couleur du voyant allume (orange par defaut)
+    void setLitColour (juce::Colour newColour)
+    {
+        colour = newColour;
+        repaint();
+    }
+
     void setEffectiveActive (bool shouldBeBright)
     {
         if (effectiveActive != shouldBeBright)
@@ -33,7 +40,7 @@ public:
         const auto led = juce::Rectangle<float> (area.getX() + 3.0f, area.getCentreY() - d * 0.5f, d, d);
         const bool on = getToggleState();
 
-        const auto litColour = effectiveActive ? juce::Colour (0xffff9a2e) : juce::Colour (0xff8a5a1e);
+        const auto litColour = effectiveActive ? colour : colour.withMultipliedBrightness (0.55f);
 
         if (on)   // halo lumineux
         {
@@ -68,6 +75,7 @@ private:
     float textSize;
     float diameter;
     bool effectiveActive = true;
+    juce::Colour colour { 0xffff9a2e };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (RoundLedButton)
 };

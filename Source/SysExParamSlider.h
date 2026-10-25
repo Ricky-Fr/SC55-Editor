@@ -22,6 +22,7 @@ public:
         int maxValue     = 127;
         int defaultValue = 0;
         juce::Slider::SliderStyle style = juce::Slider::LinearVertical;
+        juce::Slider::TextEntryBoxPosition textBoxPosition = juce::Slider::TextBoxBelow;
         int textBoxWidth  = 60;
         int textBoxHeight = 20;
 
@@ -37,7 +38,7 @@ public:
         : sendFn (std::move (sendFunction))
     {
         setSliderStyle (config.style);
-        setTextBoxStyle (juce::Slider::TextBoxBelow, false, config.textBoxWidth, config.textBoxHeight);
+        setTextBoxStyle (config.textBoxPosition, false, config.textBoxWidth, config.textBoxHeight);
         setRange ((double) config.minValue, (double) config.maxValue, 1.0);
 
         if (config.formatter)
