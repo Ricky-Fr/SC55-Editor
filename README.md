@@ -1,9 +1,15 @@
-# Roland SC-55 Editor
+# Roland SC-55 Editor - Standalone and VST
 
-An editor tailored for the Roland SC-55 hardware unit. It allows you to tweak and control hardware parameters directly from your PC. A dedicated VST plugin version (designed specifically for Ableton Live in my workflow) is planned as a future development phase.
-Using Vibe Coding with Claude
+An editor tailored for the Roland SC-55 **hardware** unit. It allows you to tweak and control hardware parameters directly from your PC. 
+A dedicated VST plugin version (designed specifically for Ableton Live in my workflow) is planned as a future development phase.
+Allows saving all settings as a preset and recalling them on the fly.
+Using Vibe Coding with Claude.
 
 The current version is fully functional and supports tweaking all main parameters.
+
+Works also with Nuked-SC-55-GUI Float emulator that has a midi input, but not with The Usual Suspect's one which has not.
+
+<img width="639" height="273" alt="sc55-hw" src="https://github.com/user-attachments/assets/a5a7b4c8-c366-4997-afbd-13a24d43b1e6" />
 
 ---
 
