@@ -8,7 +8,8 @@
 ![Format](https://img.shields.io/badge/format-Standalone%20%7C%20VST3-purple?style=flat-square)
 ![Platform](https://img.shields.io/badge/platform-Windows-0078D6?style=flat-square&logo=windows&logoColor=white)
 
-An editor tailored for the Roland SC-55 **hardware** unit. It allows you to tweak and control hardware parameters directly from your PC. 
+An editor tailored for the Roland SC-55 **hardware** unit. It allows you to tweak and control hardware parameters directly from your PC.
+Roland SoundCanvas SC-55 is a desktop synthesizer, also called sound expander.
 
 A dedicated VST plugin version (designed specifically for Ableton Live in my workflow) is planned as a future development phase.
 Allows saving all settings as a preset and recalling them on the fly.
