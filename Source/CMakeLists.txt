@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(SC55Editor VERSION 0.1.7)
+project(SC55Editor VERSION 1.8)
 
 include(FetchContent)
 FetchContent_Declare(
@@ -20,6 +20,8 @@ juce_add_plugin(SC55Editor
     PLUGIN_MANUFACTURER_CODE Rick
     PLUGIN_CODE Sc55
     FORMATS VST3 Standalone
+    ICON_BIG   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/icon_big.png"
+    ICON_SMALL "${CMAKE_CURRENT_SOURCE_DIR}/Resources/icon_small.png"
     PRODUCT_NAME "SC55 Editor")
 
 target_sources(SC55Editor PRIVATE
@@ -44,9 +46,13 @@ target_sources(SC55Editor PRIVATE
 target_compile_definitions(SC55Editor PUBLIC
     JUCE_WEB_BROWSER=0
     JUCE_USE_CURL=0
-    JUCE_VST3_CAN_REPLACE_VST2=0)
+    JUCE_VST3_CAN_REPLACE_VST2=0
+    JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1)
 
 target_link_libraries(SC55Editor
     PRIVATE juce::juce_audio_utils
     PUBLIC  juce::juce_recommended_config_flags
             juce::juce_recommended_warning_flags)
+
+# Application autonome personnalisee (menu Options avec "About") : cible Standalone uniquement
+target_sources(SC55Editor_Standalone PRIVATE Source/StandaloneApp.cpp)
