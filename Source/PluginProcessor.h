@@ -3,10 +3,12 @@
 #include <array>
 #include <functional>
 #include <memory>
+#include <unordered_map>
 #include <vector>
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "SysExQueue.h"
 #include "PartParams.h"
+#include "MixState.h"
 #include "PresetManager.h"
 
 // Plugin sans audio : il sert uniquement de telecommande MIDI/SysEx pour le Roland SC-55.
@@ -23,6 +25,19 @@ public:
     void setPartParam (int part, int paramId, int rawValue, bool immediate = false);
     int  getPartParam (int part, int paramId) const;
 
+    // Parametres de l'ecran ADVANCED (voir SC55::AdvParamId)
+    void setPartAdvParam (int part, int advId, int rawValue, bool immediate = false);
+    int  getPartAdvParam (int part, int advId) const;
+    bool isDrumPart (int part) const;            // Part Mode different de Normal
+
+    // Reglages envoyes en Control Change sur le canal de la part (portamento) : voir SC55::CcParamId
+    void setPartCcParam (int part, int ccId, int rawValue, bool immediate = false);
+    int  getPartCcParam (int part, int ccId) const;
+
+    // Parametres de l'ecran SYSTEM : accord general et effets (voir SC55::SysParamId)
+    void setSysParam (int id, int rawValue, bool immediate = false);
+    int  getSysParam (int id) const;
+
     // Instrument d'une part : pc = Program Change (0..127), cc0 = variation (0..127)
     void setPartInstrument (int part, int pc, int cc0, bool immediate = false);
     int  getPartTonePc  (int part) const;
@@ -33,7 +48,9 @@ public:
     int  getGlobalParam (int paramId) const;
 
     void sendGsReset();
-    void resendAll();                            // renvoie l'etat interne complet
+    // Renvoie l'etat interne. onlyChanged = true : seules les valeurs differentes de celles
+    // deja envoyees dans cette session le sont (chargement d'un preset, plus rapide).
+    void resendAll (bool onlyChanged = false);
 
     // --- Mute / Solo (etat de session : non sauvegarde dans les presets) ---
     // Mute reel par SysEx : "Rx. Note Message" (40 1n 08) de la part passe a OFF.
@@ -96,9 +113,15 @@ private:
     };
 
     // Met en file un message Roland DT1 (Data Set 1) : adresse sur 3 octets + donnees
-    void queueDt1 (juce::uint8 a1, juce::uint8 a2, juce::uint8 a3,
+    // Renvoie false si le message n'a pas ete mis en file (valeur deja envoyee, en mode differentiel)
+    bool queueDt1 (juce::uint8 a1, juce::uint8 a2, juce::uint8 a3,
                    const std::vector<juce::uint8>& data,
                    bool immediate = false, int quietAfterMs = 0);
+
+    bool sendPartCc (int part, int ccId, bool immediate);
+    bool queueControlChange (int channel, int controller, int value, bool immediate);
+    bool sendSysParam (int id, bool immediate);
+    void resendEffectDependents (bool reverb);
 
     // Appelee par la file d'envoi : transmet le message au thread audio
     void pushToAudioThread (const juce::MidiMessage& message);
@@ -107,7 +130,7 @@ private:
 
     // Mute / solo
     void applyMixState (bool force = false);       // n'envoie que les parts dont l'audibilite change
-    void sendPartRxNote (int part);
+    void sendPartRxNote (int part, bool audible);
     void silenceHangingNotes (int part);
 
     // Etat <-> XML (utilise par la DAW et par les fichiers de presets)
@@ -120,13 +143,18 @@ private:
 
     // Modele d'etat interne : valeurs envoyees au SC-55
     std::array<std::array<int, SC55::NumPartParams>, 16> partValues;
+    std::array<std::array<int, SC55::NumAdvParams>, 16> partAdvValues;
+    std::array<std::array<int, SC55::NumCcParams>, 16> partCcValues;
     std::array<Tone, 16> partTones;
     std::array<int, SC55::NumPartParams> globalValues;
+    std::array<int, SC55::NumSysParams> sysValues;
 
-    // Mute / solo
-    std::array<bool, 16> partMuted {};
-    std::array<bool, 16> partSoloed {};
-    std::array<bool, 16> partAudible {};            // etat actuellement applique au SC-55
+    // Mute / solo (logique dans MixState.h)
+    SC55::MixState mix;
+
+    // Dernieres donnees envoyees pour chaque adresse (permet de ne renvoyer que ce qui change)
+    bool skipUnchanged = false;
+    std::unordered_map<juce::uint32, std::vector<juce::uint8>> sentShadow;
 
     PresetManager presetManager;
     juce::String currentPresetName;

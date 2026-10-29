@@ -6,7 +6,6 @@ namespace
     constexpr int kHeaderHeight = 30;
     constexpr int kTopPadding   = 6;
     constexpr int kRowHeight    = 26;
-    constexpr int kDrumPart     = 9;     // part 10 (indice 9) : jeux de batterie
 
     // Colonnes (abscisses en pixels)
     constexpr int kNumberX = 10, kNumberW = 30;
@@ -219,7 +218,7 @@ juce::String PartListView::instrumentNameForPart (int part) const
     const int pc  = processor.getPartTonePc (part) + 1;
     const int cc0 = processor.getPartToneCc0 (part);
 
-    return part == kDrumPart ? SC55::getDrumSetName (pc) : SC55::getInstrumentName (pc, cc0);
+    return processor.isDrumPart (part) ? SC55::getDrumSetName (pc) : SC55::getInstrumentName (pc, cc0);
 }
 
 void PartListView::refresh()

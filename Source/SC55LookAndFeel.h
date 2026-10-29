@@ -75,8 +75,13 @@ private:
 
         // Les reperes ne doivent pas deborder du composant
         const float limit = crossSize * 0.5f - 0.5f;
-        const float outer = juce::jmin (thumbRadius + kSliderMarkGap + kSliderMarkLength, limit);
-        const float inner = juce::jmin (thumbRadius + kSliderMarkGap, outer - 2.0f);
+        float outer = juce::jmin (thumbRadius + kSliderMarkGap + kSliderMarkLength, limit);
+        float inner = juce::jmin (thumbRadius + kSliderMarkGap, outer - 2.0f);
+
+        // Rognage : toutes les extremites exterieures reculent (les reperes restent alignes) et
+        // le bord interieur des reperes lateraux se rapproche de la piste
+        outer -= kSliderMarkOuterTrim;
+        inner -= kSliderMarkInnerTrim;
 
         g.setColour (juce::Colours::white.withAlpha (kSliderMarkAlpha));
 

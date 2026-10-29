@@ -58,6 +58,12 @@ SC55Editor::SC55Editor (SC55Processor& p)
     viewButton.onClick = [this] { showPartList (true); };
     addAndMakeVisible (viewButton);
 
+    advancedButton.onClick = [this] { showAdvanced (true); };
+    addAndMakeVisible (advancedButton);
+
+    systemButton.onClick = [this] { showSystem (true); };
+    addAndMakeVisible (systemButton);
+
     // --- Liste des instruments ---
     instrumentBox.onChange = [this] { onInstrumentBoxChanged(); };
     addAndMakeVisible (instrumentBox);
@@ -153,6 +159,16 @@ SC55Editor::SC55Editor (SC55Processor& p)
     partListView.onStatus = [this] (const juce::String& text) { status.setText (text, juce::dontSendNotification); };
     addChildComponent (partListView);
 
+    // --- Ecran ADVANCED (cache au demarrage) ---
+    advancedView.onCloseRequested = [this] { showAdvanced (false); };
+    advancedView.onStatus = [this] (const juce::String& text) { status.setText (text, juce::dontSendNotification); };
+    addChildComponent (advancedView);
+
+    // --- Ecran SYSTEM (cache au demarrage) ---
+    systemView.onCloseRequested = [this] { showSystem (false); };
+    systemView.onStatus = [this] (const juce::String& text) { status.setText (text, juce::dontSendNotification); };
+    addChildComponent (systemView);
+
     populatePresetBox();
     refreshForCurrentPart();
 
@@ -179,12 +195,20 @@ void SC55Editor::refreshForCurrentPart()
 
     if (partListView.isVisible())
         partListView.refresh();
+
+    if (advancedView.isVisible())
+        advancedView.setPart (currentPart());
+
+    if (systemView.isVisible())
+        systemView.refresh();
 }
 
 void SC55Editor::showPartList (bool shouldShow)
 {
     if (shouldShow)
     {
+        advancedView.setVisible (false);
+        systemView.setVisible (false);
         partListView.refresh();
         partListView.setVisible (true);
         partListView.toFront (false);
@@ -193,6 +217,40 @@ void SC55Editor::showPartList (bool shouldShow)
     {
         partListView.setVisible (false);
         refreshMixLeds();   // le mute / solo a pu changer dans la liste
+    }
+}
+
+void SC55Editor::showAdvanced (bool shouldShow)
+{
+    if (shouldShow)
+    {
+        partListView.setVisible (false);
+        systemView.setVisible (false);
+        advancedView.setPart (currentPart());
+        advancedView.setVisible (true);
+        advancedView.toFront (false);
+    }
+    else
+    {
+        advancedView.setVisible (false);
+        refreshForCurrentPart();   // Part Mode, Key Shift, Bend Range... ont pu changer
+    }
+}
+
+void SC55Editor::showSystem (bool shouldShow)
+{
+    if (shouldShow)
+    {
+        partListView.setVisible (false);
+        advancedView.setVisible (false);
+        systemView.refresh();
+        systemView.setVisible (true);
+        systemView.toFront (false);
+    }
+    else
+    {
+        systemView.setVisible (false);
+        refreshForCurrentPart();   // Pan, Key Shift, niveaux de reverb / chorus : valeurs globales partagees
     }
 }
 
@@ -392,7 +450,7 @@ void SC55Editor::populateInstrumentBox()
 {
     instrumentBox.clear (juce::dontSendNotification);
 
-    if (currentPart() == kDrumPart)
+    if (audioProcessor.isDrumPart (currentPart()))
     {
         for (int i = 0; i < SC55::kNumDrumSets; ++i)
             instrumentBox.addItem (SC55::kDrumSets[i].name, kDrumIdBase + i);
@@ -440,7 +498,7 @@ void SC55Editor::updateInstrumentBoxSelection()
     const int pc   = audioProcessor.getPartTonePc (part) + 1;    // 1..128
     const int cc0  = audioProcessor.getPartToneCc0 (part);
 
-    if (part == kDrumPart)
+    if (audioProcessor.isDrumPart (part))
     {
         const int i = SC55::findDrumSetIndex (pc);
         if (i >= 0)
@@ -600,10 +658,16 @@ void SC55Editor::resized()
 
     // L'ecran des 16 parts recouvre toute la zone de reglage
     partListView.setBounds (area);
+    advancedView.setBounds (area);
+    systemView.setBounds (area);
 
     // Ligne Part (liste raccourcie) + ALL / MUTE / SOLO, et VIEW sous le bouton Suppr.
     auto topRow = area.removeFromTop (28);
     viewButton.setBounds (topRow.removeFromRight (80));
+    topRow.removeFromRight (6);
+    advancedButton.setBounds (topRow.removeFromRight (90));
+    topRow.removeFromRight (6);
+    systemButton.setBounds (topRow.removeFromRight (80));
     partBox.setBounds (topRow.removeFromLeft (130));
     topRow.removeFromLeft (14);
     allButton.setBounds (topRow.removeFromLeft (70));

@@ -41,8 +41,9 @@ void SysExQueue::enqueue (juce::uint32 key, const juce::MidiMessage& message,
         e->key = key;
     }
 
-    if (! e->dirty)               // nouvelle valeur apres un envoi : nouvelle place dans la file
-        e->order = ++sequence;
+    // Le message le plus recent passe a la fin de la file : l'ordre d'envoi suit l'ordre des
+    // demandes (ex. un parametre d'effet doit partir apres le changement de type d'effet)
+    e->order = ++sequence;
 
     e->message      = message;    // ecrase la valeur precedente non envoyee
     e->lastChangeMs = now;

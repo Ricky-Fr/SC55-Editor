@@ -9,6 +9,8 @@
 #include "RoundLedButton.h"
 #include "FloppyButton.h"
 #include "PartListView.h"
+#include "AdvancedView.h"
+#include "SystemView.h"
 #include "SC55LookAndFeel.h"
 
 class SC55Editor : public juce::AudioProcessorEditor,
@@ -24,7 +26,6 @@ public:
 private:
     // Colonne 0 = INSTRUMENT, colonnes suivantes = parametres de la table SC55::getPartParamInfo
     static constexpr int kNumColumns = SC55::NumPartParams + 1;
-    static constexpr int kDrumPart   = 9;      // part 10 (indice 9) : jeux de batterie
     static constexpr int kDrumIdBase = 1000;   // identifiants des jeux de batterie dans la liste
 
     int  currentPart() const              { return partBox.getSelectedId() - 1; }
@@ -39,6 +40,8 @@ private:
     void updateLedStates();
     void refreshMixLeds();
     void showPartList (bool shouldShow);
+    void showAdvanced (bool shouldShow);
+    void showSystem (bool shouldShow);
 
     // Sliders et instrument
     void onParamSliderChanged (int paramId, int displayValue, bool immediate);
@@ -73,6 +76,8 @@ private:
     RoundLedButton   muteButton { "MUTE", 13.0f, 18.0f };
     RoundLedButton   soloButton { "SOLO", 13.0f, 18.0f };
     juce::TextButton viewButton { "VIEW" };
+    juce::TextButton advancedButton { "ADVANCED" };
+    juce::TextButton systemButton { "SYSTEM" };
     juce::ComboBox   instrumentBox;
 
     std::array<juce::Label, kNumColumns> labels;
@@ -85,6 +90,12 @@ private:
 
     // Ecran des 16 parts, superpose a l'ecran de reglage d'une part
     PartListView     partListView { audioProcessor };
+
+    // Ecran des reglages avances (Tone Modify, Part Setup, Pitch), superpose lui aussi
+    AdvancedView     advancedView { audioProcessor };
+
+    // Ecran des reglages generaux (accord, reverb, chorus)
+    SystemView       systemView { audioProcessor };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SC55Editor)
 };

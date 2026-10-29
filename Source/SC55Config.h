@@ -40,6 +40,8 @@ namespace SC55Config
     constexpr float kSliderMarkThickness = 1.0f;    // epaisseur d'un repere (px)
     constexpr float kSliderMarkGap       = 3.0f;    // ecart entre le curseur et un repere lateral (px)
     constexpr float kSliderMarkLength    = 7.0f;    // longueur d'un repere lateral (px)
+    constexpr float kSliderMarkOuterTrim = 3.0f;    // retrait de l'extremite exterieure de chaque repere (px)
+    constexpr float kSliderMarkInnerTrim = 2.0f;    // rapprochement du bord interieur vers la piste (px)
 
     // true  : les reperes min et max sont des barres qui traversent la piste
     // false : comme le repere median, ils restent de part et d'autre de la piste
