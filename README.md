@@ -29,13 +29,21 @@ Works also with Nuked-SC-55-GUI Float emulator that has a midi input, but not wi
 
 ---
 
-<img width="722" height="628" alt="sc55-1" src="https://github.com/user-attachments/assets/a770e78a-2293-462e-b3f7-d5a9064b2f61" />
+<img width="722" height="628" alt="image" src="https://github.com/user-attachments/assets/758f3fb5-d8f6-4844-8041-0e170d6beb6d" />
 
 *Main window*
 
 <img width="722" height="628" alt="sc55-2" src="https://github.com/user-attachments/assets/53df4b6f-9797-45de-a124-15c1cc1c27da" />
 
 *View window*
+
+<img width="722" height="628" alt="image" src="https://github.com/user-attachments/assets/9cd0acf2-8c91-4f16-840a-79c3ef79b7e1" />
+
+*Advanced window*
+
+<img width="722" height="628" alt="image" src="https://github.com/user-attachments/assets/c3cdf3f9-4882-49da-a9bf-46c9f3907399" />
+
+*System window*
 
 ---
 
