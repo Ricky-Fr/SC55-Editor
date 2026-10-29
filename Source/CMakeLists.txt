@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(SC55Editor VERSION 1.8)
+project(SC55Editor VERSION 1.12)
 
 include(FetchContent)
 FetchContent_Declare(
@@ -31,6 +31,7 @@ target_sources(SC55Editor PRIVATE
     Source/PluginEditor.h
     Source/SysExQueue.cpp
     Source/SysExQueue.h
+    Source/MixState.h
     Source/SysExParamSlider.h
     Source/PartParams.h
     Source/InstrumentData.h
@@ -38,6 +39,12 @@ target_sources(SC55Editor PRIVATE
     Source/FloppyButton.h
     Source/PartListView.cpp
     Source/PartListView.h
+    Source/AdvancedView.cpp
+    Source/AdvancedView.h
+    Source/SystemView.cpp
+    Source/SystemView.h
+    Source/ParamPanel.cpp
+    Source/ParamPanel.h
     Source/PresetManager.cpp
     Source/PresetManager.h
     Source/SC55LookAndFeel.h
