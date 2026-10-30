@@ -259,7 +259,14 @@ void SC55Processor::setPartAdvParam (int part, int advId, int rawValue, bool imm
     else
         data = { (juce::uint8) rawValue };
 
+    // Ecrire le Part Mode fait re-selectionner l'instrument sur le SC-55 : on ne le reecrit jamais
+    // s'il est identique a la derniere valeur envoyee (meme pour un renvoi complet de l'etat)
+    const bool previousMode = skipUnchanged;
+    if (advId == SC55::AdvPartMode)
+        skipUnchanged = true;
+
     const bool sent = queueDt1 (0x40, (juce::uint8) (info.partBase | partToBlock (part)), info.offset, data, immediate);
+    skipUnchanged = previousMode;
 
     if (advId == SC55::AdvPartMode)
     {

@@ -12,6 +12,8 @@ SC55Editor::SC55Editor (SC55Processor& p)
 {
     setLookAndFeel (&lookAndFeel);
 
+    addAndMakeVisible (headerBar);
+
     // --- Presets ---
     presetLabel.setColour (juce::Label::textColourId, juce::Colour (0xffd0d0d0));
     addAndMakeVisible (presetLabel);
@@ -128,14 +130,31 @@ SC55Editor::SC55Editor (SC55Processor& p)
     resetButton.onClick = [this]
     {
         audioProcessor.sendGsReset();
-        status.setText ("GS Reset envoye", juce::dontSendNotification);
+        status.setText ("GS Reset : envoi en cours...", juce::dontSendNotification);
+
+        // Quand la file est vide (et la pause qui suit le reset ecoulee), tout est parti
+        juce::Component::SafePointer<SC55Editor> safeThis (this);
+        audioProcessor.runWhenSendingFinished ([safeThis]
+        {
+            if (safeThis != nullptr)
+                safeThis->status.setText (juce::String::fromUTF8 ("GS Reset : envoi termin\xc3\xa9"),
+                                          juce::dontSendNotification);
+        });
     };
     addAndMakeVisible (resetButton);
 
     resendButton.onClick = [this]
     {
         audioProcessor.resendAll();
-        status.setText ("Etat renvoye (16 parts + globaux)", juce::dontSendNotification);
+        status.setText ("Envoi en cours...", juce::dontSendNotification);
+
+        // Quand la file d'envoi est vide, tous les messages sont partis
+        juce::Component::SafePointer<SC55Editor> safeThis (this);
+        audioProcessor.runWhenSendingFinished ([safeThis]
+        {
+            if (safeThis != nullptr)
+                safeThis->status.setText (juce::String::fromUTF8 ("Envoi termin\xc3\xa9"), juce::dontSendNotification);
+        });
     };
     addAndMakeVisible (resendButton);
 
@@ -171,6 +190,7 @@ SC55Editor::SC55Editor (SC55Processor& p)
 
     populatePresetBox();
     refreshForCurrentPart();
+    updateViewTitle();
 
     setSize (720, 600);
 }
@@ -203,6 +223,18 @@ void SC55Editor::refreshForCurrentPart()
         systemView.refresh();
 }
 
+// Nom de la vue affichee dans le bandeau : Main (ecran de part), View, Advanced ou System
+void SC55Editor::updateViewTitle()
+{
+    juce::String name = "Main";
+
+    if (partListView.isVisible())      name = "View";
+    else if (advancedView.isVisible()) name = "Advanced";
+    else if (systemView.isVisible())   name = "System";
+
+    headerBar.setViewName (name);
+}
+
 void SC55Editor::showPartList (bool shouldShow)
 {
     if (shouldShow)
@@ -218,6 +250,8 @@ void SC55Editor::showPartList (bool shouldShow)
         partListView.setVisible (false);
         refreshMixLeds();   // le mute / solo a pu changer dans la liste
     }
+
+    updateViewTitle();
 }
 
 void SC55Editor::showAdvanced (bool shouldShow)
@@ -235,6 +269,8 @@ void SC55Editor::showAdvanced (bool shouldShow)
         advancedView.setVisible (false);
         refreshForCurrentPart();   // Part Mode, Key Shift, Bend Range... ont pu changer
     }
+
+    updateViewTitle();
 }
 
 void SC55Editor::showSystem (bool shouldShow)
@@ -252,6 +288,8 @@ void SC55Editor::showSystem (bool shouldShow)
         systemView.setVisible (false);
         refreshForCurrentPart();   // Pan, Key Shift, niveaux de reverb / chorus : valeurs globales partagees
     }
+
+    updateViewTitle();
 }
 
 // La commande est globale seulement si ALL ET le bouton GLOBAL du slider sont allumes
@@ -631,16 +669,12 @@ void SC55Editor::refreshSlidersFromState()
 void SC55Editor::paint (juce::Graphics& g)
 {
     g.fillAll (juce::Colour (0xff23272a));
-    g.setColour (juce::Colour (0xffd0d0d0));
-    g.setFont (18.0f);
-    g.drawText ("SC-55 Editor - test SysEx", getLocalBounds().removeFromTop (36),
-                juce::Justification::centred);
 }
 
 void SC55Editor::resized()
 {
     auto area = getLocalBounds().reduced (16);
-    area.removeFromTop (28);                                   // titre
+    headerBar.setBounds (area.removeFromTop (28));             // bandeau du haut
 
     // Ligne Preset : liste editable + disquette + suppression
     auto presetRow = area.removeFromTop (28);

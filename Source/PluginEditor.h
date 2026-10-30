@@ -11,6 +11,7 @@
 #include "PartListView.h"
 #include "AdvancedView.h"
 #include "SystemView.h"
+#include "HeaderBar.h"
 #include "SC55LookAndFeel.h"
 
 class SC55Editor : public juce::AudioProcessorEditor,
@@ -42,6 +43,7 @@ private:
     void showPartList (bool shouldShow);
     void showAdvanced (bool shouldShow);
     void showSystem (bool shouldShow);
+    void updateViewTitle();      // Main / View / Advanced / System dans le bandeau du haut
 
     // Sliders et instrument
     void onParamSliderChanged (int paramId, int displayValue, bool immediate);
@@ -62,6 +64,9 @@ private:
 
     SC55LookAndFeel lookAndFeel;       // declaree en premier : detruite en dernier
     SC55Processor& audioProcessor;
+
+    // Bandeau du haut : logo, titre avec le nom de la vue, signature
+    HeaderBar        headerBar;
 
     // Presets
     juce::Label      presetLabel { {}, "PRESET" };

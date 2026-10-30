@@ -83,6 +83,10 @@ void SysExQueue::timerCallback()
 
     if (! anyDirty)
     {
+        // On attend aussi la fin de la pause qui suit le dernier message (ex. apres un GS Reset)
+        if (anySent && (now - lastSendMs) < gapMs)
+            return;
+
         stopTimer();
 
         if (emptyCallback)
