@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22)
-project(SC55Editor VERSION 1.12)
+project(SC55Editor VERSION 1.16)
 
 include(FetchContent)
 FetchContent_Declare(
@@ -37,6 +37,7 @@ target_sources(SC55Editor PRIVATE
     Source/InstrumentData.h
     Source/RoundLedButton.h
     Source/FloppyButton.h
+    Source/HeaderBar.h
     Source/PartListView.cpp
     Source/PartListView.h
     Source/AdvancedView.cpp
