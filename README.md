@@ -8,6 +8,8 @@
 ![Format](https://img.shields.io/badge/format-Standalone%20%7C%20VST3-purple?style=flat-square)
 ![Platform](https://img.shields.io/badge/platform-Windows-0078D6?style=flat-square&logo=windows&logoColor=white)
 
+SC-55 Editor is a modern Windows application for managing and editing Roland SC-55 Sound Canvas devices through MIDI and SysEx communication.
+
 An editor tailored for the Roland SC-55 **hardware** unit. It allows you to tweak and control hardware parameters directly from your PC.
 Roland SoundCanvas SC-55 is a desktop synthesizer, also called sound expander.
 
@@ -66,3 +68,12 @@ To test the editor without relying on physical hardware, I used a software emula
 ## 📄 License
 
 This project is licensed under the **MIT License** - see the LICENSE file for details.
+
+
+## Keywords
+
+Roland SC-55, Roland Sound Canvas, SC-55 MkII, Sound Canvas,
+MIDI Editor, SysEx Editor, GS MIDI, General MIDI,
+Hardware Synthesizer, MIDI Device Manager,
+Windows Application, JUCE Framework,
+Retro Gaming, DOS Gaming, MIDI Programming
