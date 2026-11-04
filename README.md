@@ -15,21 +15,20 @@ Roland SoundCanvas SC-55 is a desktop synthesizer, also called sound expander.
 
 A dedicated VST plugin version (designed specifically for Ableton Live in my workflow) is yet released.
 Allows saving all settings as a preset and recalling them on the fly.
-the vst version allows to do Key Switching: you puts a note from C-2 to G8 in a clip then the correponding preset number is loaded. In ex : C#-2 = preset #1, D2 = preset #3
+the vst version allows to do Key Switching: you put a note from C-2 to G8 in a clip then the correponding preset number is loaded. In ex : C#-2 = preset #1, D2 = preset #2
 
 Using Vibe Coding with Claude and Copilot. Done in C++ and JUCE.
 
 The current version is fully functional and supports tweaking all main parameters.
 
-Works also with Nuked-SC-55-GUI Float emulator that has a midi input, and tested succesfully with The Usual Suspectt's one.
+Works also with Nuked-SC-55-GUI Float emulator that has a midi input, and succesfully tested with The Usual Suspect's one.
 
 <img width="639" height="273" alt="sc55-hw" src="https://github.com/user-attachments/assets/a5a7b4c8-c366-4997-afbd-13a24d43b1e6" />
 
 ---
 
 ## 🚀 Upcoming Features
-- [ ] **Effects parameters**
-- [ ] **VST Plugin Version** (for DAW integration)
+- [ ] **more Effects parameters**
 
 ---
 
@@ -41,11 +40,11 @@ Works also with Nuked-SC-55-GUI Float emulator that has a midi input, and tested
 
 *View window*
 
-<img width="722" height="628" alt="image" src="https://github.com/user-attachments/assets/9cd0acf2-8c91-4f16-840a-79c3ef79b7e1" />
+<img width="722" height="632" alt="image" src="https://github.com/user-attachments/assets/9e361be0-a5b5-4a18-8b6e-83d11846fe42" />
 
 *Advanced window*
 
-<img width="722" height="628" alt="image" src="https://github.com/user-attachments/assets/c3cdf3f9-4882-49da-a9bf-46c9f3907399" />
+<img width="722" height="632" alt="image" src="https://github.com/user-attachments/assets/227a5d1b-ddd0-4cff-95f9-53b0d1991c28" />
 
 *System window*
 
