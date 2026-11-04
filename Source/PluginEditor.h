@@ -74,6 +74,10 @@ private:
     FloppyButton     saveButton;
     juce::TextButton deleteButton { "Suppr." };
     bool             deleteArmed = false;
+    juce::uint32     deleteArmedAt = 0;
+    juce::String     displayedPresetName;
+    juce::uint64     displayedKeySwitchSequence = 0;
+    juce::uint64     displayedPresetLoadSequence = 0;
 
     // Part, ALL, MUTE, SOLO, VIEW
     juce::ComboBox   partBox;

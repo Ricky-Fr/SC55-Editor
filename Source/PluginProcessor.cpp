@@ -4,10 +4,11 @@
 #include <algorithm>
 
 SC55Processor::SC55Processor()
-    : AudioProcessor (BusesProperties().withOutput ("Output", juce::AudioChannelSet::stereo(), true)),
+    : AudioProcessor (BusesProperties()
+                        .withInput  ("Input",  juce::AudioChannelSet::stereo(), true)
+                        .withOutput ("Output", juce::AudioChannelSet::stereo(), true)),
       sysexQueue ([this] (const juce::MidiMessage& m) { pushToAudioThread (m); })
 {
-    // Valeurs par defaut GS
     for (int part = 0; part < 16; ++part)
         for (int id = 0; id < SC55::NumPartParams; ++id)
             partValues[(size_t) part][(size_t) id] = SC55::getDefaultRaw (SC55::getPartParamInfo (id), part);
@@ -28,7 +29,6 @@ SC55Processor::SC55Processor()
 
     deviceId = (juce::uint8) globalValues[(size_t) SC55::PartMidiChannel];
 
-    // Rappel du dernier preset utilise
     currentPresetName = PresetManager::kDefaultName;
 
     const auto lastPreset = presetManager.getLastPresetName();
@@ -36,17 +36,93 @@ SC55Processor::SC55Processor()
         resendAll();
 }
 
+SC55Processor::~SC55Processor()
+{
+    directMidiOutput.reset();
+}
+
 bool SC55Processor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
-    return layouts.getMainOutputChannelSet() == juce::AudioChannelSet::stereo();
+    if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
+        return false;
+
+    if (layouts.getMainInputChannelSet() != juce::AudioChannelSet::stereo()
+        && layouts.getMainInputChannelSet() != juce::AudioChannelSet::disabled())
+        return false;
+
+    return true;
+}
+
+void SC55Processor::setMidiOutputDeviceName (const juce::String& deviceName)
+{
+    midiOutputDeviceName = deviceName;
+    updateDirectMidiOutput();
+}
+
+void SC55Processor::updateDirectMidiOutput()
+{
+    directMidiOutput.reset();
+
+    if (midiOutputDeviceName.isEmpty())
+        return;
+
+    const auto devices = juce::MidiOutput::getAvailableDevices();
+    for (const auto& dev : devices)
+    {
+        if (dev.name == midiOutputDeviceName)
+        {
+            directMidiOutput = juce::MidiOutput::openDevice (dev.identifier);
+            break;
+        }
+    }
 }
 
 void SC55Processor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midi)
 {
     juce::ScopedNoDenormals noDenormals;
 
-    buffer.clear();   // pas d'audio : le son vient du SC-55
-    midi.clear();     // on ne fait pas de MIDI thru
+    juce::MidiBuffer processedMidi;
+
+    for (const auto metadata : midi)
+    {
+        auto message = metadata.getMessage();
+        const int samplePosition = metadata.samplePosition;
+
+        // Key switching : C-2 (note 0) correspond au preset 0.
+        // Les notes sont toujours consommees, quel que soit leur canal.
+        if (message.isNoteOn() || message.isNoteOff())
+        {
+            if (message.isNoteOn())
+            {
+                const int noteNumber = message.getNoteNumber();
+                const int presetIndex = noteNumber;
+
+                lastKeySwitchNote.store (noteNumber, std::memory_order_relaxed);
+                lastPresetIndex.store (-1, std::memory_order_relaxed);
+                keySwitchSequence.fetch_add (1, std::memory_order_relaxed);
+
+                juce::MessageManager::callAsync ([this, presetIndex]()
+                {
+                    const auto names = presetManager.getPresetNames();
+                    if (presetIndex >= 0 && presetIndex < names.size()
+                        && loadPreset (names[presetIndex], true))
+                    {
+                        lastPresetIndex.store (presetIndex, std::memory_order_relaxed);
+                        presetLoadSequence.fetch_add (1, std::memory_order_relaxed);
+                    }
+                });
+
+                // Consommation de la note (on ne la transmet pas).
+                continue;
+            }
+            continue;
+        }
+
+        processedMidi.addEvent (message, samplePosition);
+    }
+
+    midi.clear();
+    midi.addEvents (processedMidi, 0, buffer.getNumSamples(), 0);
 
     const juce::SpinLock::ScopedLockType lock (pendingLock);
     if (! pending.isEmpty())
@@ -59,14 +135,15 @@ void SC55Processor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBu
 void SC55Processor::pushToAudioThread (const juce::MidiMessage& message)
 {
     const juce::SpinLock::ScopedLockType lock (pendingLock);
+
+    if (message.isSysEx() && directMidiOutput != nullptr)
+    {
+        directMidiOutput->sendMessageNow (message);
+    }
+
     pending.addEvent (message, 0);
 }
 
-// ---------------------------------------------------------------------------
-// SysEx Roland GS
-// ---------------------------------------------------------------------------
-
-// Parts 1..16 -> chiffre d'adresse n (la part 10 est en 0, les parts 1-9 en 1-9, 11-16 en A-F)
 int SC55Processor::partToBlock (int part)
 {
     static const int map[16] = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 10, 11, 12, 13, 14, 15 };
@@ -77,8 +154,6 @@ bool SC55Processor::queueDt1 (juce::uint8 a1, juce::uint8 a2, juce::uint8 a3,
                               const std::vector<juce::uint8>& data,
                               bool immediate, int quietAfterMs)
 {
-    // Format : F0 41 <dev> 42 12 <a1 a2 a3> <data...> <checksum> F7
-    // (JUCE ajoute F0 et F7 lui-meme)
     std::vector<juce::uint8> msg { 0x41, deviceId, 0x42, 0x12, a1, a2, a3 };
     msg.insert (msg.end(), data.begin(), data.end());
 
@@ -89,11 +164,8 @@ bool SC55Processor::queueDt1 (juce::uint8 a1, juce::uint8 a2, juce::uint8 a3,
     msg.push_back (checksum);
 
     const auto sysex = juce::MidiMessage::createSysExMessage (msg.data(), (int) msg.size());
-
-    // La cle identifie le parametre : deux messages de meme adresse sont fusionnes
     const juce::uint32 key = ((juce::uint32) a1 << 16) | ((juce::uint32) a2 << 8) | (juce::uint32) a3;
 
-    // Mode "ne renvoyer que ce qui change" : on saute les valeurs deja envoyees
     const auto shadow = sentShadow.find (key);
     if (skipUnchanged && shadow != sentShadow.end() && shadow->second == data)
         return false;
@@ -102,8 +174,6 @@ bool SC55Processor::queueDt1 (juce::uint8 a1, juce::uint8 a2, juce::uint8 a3,
     sysexQueue.enqueue (key, sysex, immediate, quietAfterMs);
     return true;
 }
-
-// --- Parametres de part ------------------------------------------------------
 
 void SC55Processor::setPartParam (int part, int paramId, int rawValue, bool immediate)
 {
@@ -115,7 +185,6 @@ void SC55Processor::setPartParam (int part, int paramId, int rawValue, bool imme
 
     partValues[(size_t) part][(size_t) paramId] = rawValue;
 
-    // Adresse : 40 <partBase | n> <offset>
     queueDt1 (0x40, (juce::uint8) (info.partBase | partToBlock (part)), info.offset,
               { (juce::uint8) rawValue }, immediate);
 }
@@ -126,15 +195,8 @@ int SC55Processor::getPartParam (int part, int paramId) const
                      [(size_t) juce::jlimit (0, (int) SC55::NumPartParams - 1, paramId)];
 }
 
-// --- Reglages en Control Change (portamento) ---------------------------------------
-//
-// Pas d'adresse SysEx pour le portamento : on envoie un Control Change sur le canal MIDI de
-// reception de la part (Rx Channel). Si ce canal est OFF, rien n'est envoye. "Rx Portamento" et
-// "Rx Control Change" doivent etre sur On (c'est le reglage par defaut).
-
 bool SC55Processor::queueControlChange (int channel, int controller, int value, bool immediate)
 {
-    // Meme memoire des valeurs deja envoyees que pour les SysEx (mode differentiel)
     const juce::uint32 key = 0xC0000000u | ((juce::uint32) channel << 8) | (juce::uint32) controller;
     const std::vector<juce::uint8> data { (juce::uint8) value };
 
@@ -149,7 +211,7 @@ bool SC55Processor::queueControlChange (int channel, int controller, int value, 
 
 bool SC55Processor::sendPartCc (int part, int ccId, bool immediate)
 {
-    const int rxChannel = partValues[(size_t) part][(size_t) SC55::PartMidiChannel];   // 0..15, 16 = OFF
+    const int rxChannel = partValues[(size_t) part][(size_t) SC55::PartMidiChannel];   
     if (rxChannel > 15)
         return false;
 
@@ -176,14 +238,11 @@ int SC55Processor::getPartCcParam (int part, int ccId) const
                        [(size_t) juce::jlimit (0, (int) SC55::NumCcParams - 1, ccId)];
 }
 
-// --- Parametres systeme et effets (ecran SYSTEM) ---------------------------------
-
 bool SC55Processor::sendSysParam (int id, bool immediate)
 {
     const auto& info = SC55::getSysParamInfo (id);
     const int raw = sysValues[(size_t) id];
 
-    // Donnee "nibblized" : 4 bits par octet (4 octets pour l'accord general), sinon 1 octet
     std::vector<juce::uint8> data;
     if (info.bytes == 4)
         data = { (juce::uint8) ((raw >> 12) & 0x0F), (juce::uint8) ((raw >> 8) & 0x0F),
@@ -203,8 +262,6 @@ void SC55Processor::setSysParam (int id, int rawValue, bool immediate)
 
     const bool sent = sendSysParam (id, immediate);
 
-    // Changer de type d'effet (macro) remet les autres parametres de l'effet a leurs valeurs
-    // predefinies : on reaffirme ensuite celles de l'editeur
     if (sent && (id == SC55::SysReverbType || id == SC55::SysChorusType))
         resendEffectDependents (id == SC55::SysReverbType);
 }
@@ -212,19 +269,19 @@ void SC55Processor::setSysParam (int id, int rawValue, bool immediate)
 void SC55Processor::resendEffectDependents (bool reverb)
 {
     const bool previousMode = skipUnchanged;
-    skipUnchanged = false;   // ces valeurs doivent etre reaffirmees meme si elles n'ont pas change
+    skipUnchanged = false;   
 
     if (reverb)
     {
         sendSysParam (SC55::SysReverbCharacter, true);
-        setGlobalParam (SC55::PartReverb, globalValues[(size_t) SC55::PartReverb], true);   // Reverb Level
+        setGlobalParam (SC55::PartReverb, globalValues[(size_t) SC55::PartReverb], true);   
         sendSysParam (SC55::SysReverbTime, true);
         sendSysParam (SC55::SysReverbDelayFeedback, true);
     }
     else
     {
         sendSysParam (SC55::SysChorusPreLpf, true);
-        setGlobalParam (SC55::PartChorus, globalValues[(size_t) SC55::PartChorus], true);   // Chorus Level
+        setGlobalParam (SC55::PartChorus, globalValues[(size_t) SC55::PartChorus], true);   
         sendSysParam (SC55::SysChorusFeedback, true);
         sendSysParam (SC55::SysChorusDelay, true);
         sendSysParam (SC55::SysChorusRate, true);
@@ -239,8 +296,6 @@ int SC55Processor::getSysParam (int id) const
     return sysValues[(size_t) juce::jlimit (0, (int) SC55::NumSysParams - 1, id)];
 }
 
-// --- Parametres avances (ecran ADVANCED) ---------------------------------------
-
 void SC55Processor::setPartAdvParam (int part, int advId, int rawValue, bool immediate)
 {
     part  = juce::jlimit (0, 15, part);
@@ -252,15 +307,12 @@ void SC55Processor::setPartAdvParam (int part, int advId, int rawValue, bool imm
     const int previousValue = partAdvValues[(size_t) part][(size_t) advId];
     partAdvValues[(size_t) part][(size_t) advId] = rawValue;
 
-    // Donnee "nibblized" sur 2 octets (4 bits chacun), sinon 1 octet
     std::vector<juce::uint8> data;
     if (info.bytes == 2)
         data = { (juce::uint8) ((rawValue >> 4) & 0x0F), (juce::uint8) (rawValue & 0x0F) };
     else
         data = { (juce::uint8) rawValue };
 
-    // Ecrire le Part Mode fait re-selectionner l'instrument sur le SC-55 : on ne le reecrit jamais
-    // s'il est identique a la derniere valeur envoyee (meme pour un renvoi complet de l'etat)
     const bool previousMode = skipUnchanged;
     if (advId == SC55::AdvPartMode)
         skipUnchanged = true;
@@ -270,12 +322,9 @@ void SC55Processor::setPartAdvParam (int part, int advId, int rawValue, bool imm
 
     if (advId == SC55::AdvPartMode)
     {
-        // Passer d'une part normale a une part de batterie (ou l'inverse) : le SC-55 choisit l'instrument
-        // par defaut du nouveau type, l'editeur fait de meme pour rester coherent
         if ((previousValue != 0) != (rawValue != 0))
             partTones[(size_t) part] = Tone();
 
-        // Ecrire le Part Mode re-selectionne l'instrument sur le SC-55 : on reaffirme celui de l'editeur
         if (sent)
             setPartInstrument (part, partTones[(size_t) part].pc, partTones[(size_t) part].cc0, true);
     }
@@ -292,8 +341,6 @@ bool SC55Processor::isDrumPart (int part) const
     return getPartAdvParam (part, SC55::AdvPartMode) != 0;
 }
 
-// --- Instrument --------------------------------------------------------------
-
 void SC55Processor::setPartInstrument (int part, int pc, int cc0, bool immediate)
 {
     part = juce::jlimit (0, 15, part);
@@ -303,15 +350,12 @@ void SC55Processor::setPartInstrument (int part, int pc, int cc0, bool immediate
     partTones[(size_t) part].pc  = pc;
     partTones[(size_t) part].cc0 = cc0;
 
-    // 40 1n 00 : Tone Number = CC#0 (variation) puis Program Change, sur 2 octets
     queueDt1 (0x40, (juce::uint8) (0x10 | partToBlock (part)), 0x00,
               { (juce::uint8) cc0, (juce::uint8) pc }, immediate);
 }
 
 int SC55Processor::getPartTonePc (int part) const   { return partTones[(size_t) juce::jlimit (0, 15, part)].pc; }
 int SC55Processor::getPartToneCc0 (int part) const  { return partTones[(size_t) juce::jlimit (0, 15, part)].cc0; }
-
-// --- Commandes globales ------------------------------------------------------
 
 void SC55Processor::setGlobalParam (int paramId, int rawValue, bool immediate)
 {
@@ -329,15 +373,13 @@ void SC55Processor::setGlobalParam (int paramId, int rawValue, bool immediate)
             break;
 
         case SC55::GlobalAllParts:
-            // Pas de SysEx master pour ce parametre : on l'applique a chaque part
             for (int part = 0; part < 16; ++part)
                 setPartParam (part, paramId, rawValue, immediate);
             break;
 
         case SC55::GlobalDeviceId:
-            // Reglage local : Device ID utilise par l'editeur, aucun message envoye
             deviceId = (juce::uint8) rawValue;
-            sentShadow.clear();   // les valeurs memorisees visaient un autre Device ID
+            sentShadow.clear();   
             break;
 
         case SC55::GlobalNone:
@@ -351,16 +393,6 @@ int SC55Processor::getGlobalParam (int paramId) const
     return globalValues[(size_t) juce::jlimit (0, (int) SC55::NumPartParams - 1, paramId)];
 }
 
-// --- Mute / Solo -------------------------------------------------------------
-//
-// Il n'existe pas de SysEx "mute" dans la documentation du SC-55. Le mute reel d'une
-// part passe par son interrupteur "Rx. Note Message" (40 1n 08) : OFF = la part ignore
-// les notes, ON = fonctionnement normal. Ni le volume ni aucun autre reglage n'est
-// modifie. Les notes deja en cours sont coupees par un "All Sounds Off" sur le canal
-// MIDI de la part (voir silenceHangingNotes).
-// La logique (qui est audible, quelles parts changent) est dans MixState : applyMixState()
-// n'envoie que les parts dont l'audibilite a change.
-
 void SC55Processor::sendPartRxNote (int part, bool audible)
 {
     queueDt1 (0x40, (juce::uint8) (0x10 | partToBlock (part)), 0x08,
@@ -369,12 +401,10 @@ void SC55Processor::sendPartRxNote (int part, bool audible)
 
 void SC55Processor::silenceHangingNotes (int part)
 {
-    const int rxChannel = partValues[(size_t) part][(size_t) SC55::PartMidiChannel];   // 0..15, 16 = OFF
+    const int rxChannel = partValues[(size_t) part][(size_t) SC55::PartMidiChannel];   
     if (rxChannel > 15)
         return;
 
-    // Un "All Sounds Off" coupe toutes les parts de ce canal : on s'abstient si une autre
-    // part encore audible l'utilise aussi.
     for (int other = 0; other < 16; ++other)
         if (other != part && mix.isAudible (other)
             && partValues[(size_t) other][(size_t) SC55::PartMidiChannel] == rxChannel)
@@ -422,7 +452,7 @@ bool SC55Processor::isPartSoloed (int part) const       { return mix.isSoloed (p
 
 bool SC55Processor::isPartEfxModified (int) const
 {
-    return false;   // a completer avec la gestion des effets
+    return false;   
 }
 
 void SC55Processor::runWhenSendingFinished (std::function<void()> callback)
@@ -430,15 +460,11 @@ void SC55Processor::runWhenSendingFinished (std::function<void()> callback)
     sysexQueue.runWhenEmpty (std::move (callback));
 }
 
-// --- GS Reset / renvoi de l'etat ---------------------------------------------
-
 void SC55Processor::sendGsReset()
 {
-    // GS Reset : F0 41 10 42 12 40 00 7F 00 41 F7, suivi d'une pause
     queueDt1 (0x40, 0x00, 0x7F, { 0x00 }, true, SC55Config::kAfterGsResetDelayMs);
-    sentShadow.clear();   // apres un reset, l'etat du SC-55 est celui par defaut
+    sentShadow.clear();   
 
-    // Le reset remet toutes les parts en ecoute : on reapplique le mute / solo en cours
     mix.markAllApplied (true);
     applyMixState();
 }
@@ -451,38 +477,53 @@ void SC55Processor::resendAll (bool onlyChanged)
     for (int part = 0; part < 16; ++part)
     {
         for (int id = 0; id < SC55::NumPartParams; ++id)
-            setPartParam (part, id, partValues[(size_t) part][(size_t) id], true);
+        {
+            const auto& info = SC55::getPartParamInfo (id);
+            const int value = partValues[(size_t) part][(size_t) id];
+            if (! onlyChanged || value != SC55::getDefaultRaw (info, part))
+                setPartParam (part, id, value, true);
+        }
 
         for (int id = 0; id < SC55::NumAdvParams; ++id)
-            setPartAdvParam (part, id, partAdvValues[(size_t) part][(size_t) id], true);
+        {
+            const int value = partAdvValues[(size_t) part][(size_t) id];
+            if (! onlyChanged || value != SC55::getAdvDefaultRaw (SC55::getAdvParamInfo (id), part))
+                setPartAdvParam (part, id, value, true);
+        }
 
         for (int id = 0; id < SC55::NumCcParams; ++id)
-            setPartCcParam (part, id, partCcValues[(size_t) part][(size_t) id], true);
+        {
+            const int value = partCcValues[(size_t) part][(size_t) id];
+            if (! onlyChanged || value != SC55::getCcParamInfo (id).rawDefault)
+                setPartCcParam (part, id, value, true);
+        }
 
-        // L'instrument part EN DERNIER : ecrire le Part Mode (Use for Rhythm Part) fait
-        // re-selectionner l'instrument par defaut sur le SC-55 et ecraserait celui envoye avant.
-        setPartInstrument (part, partTones[(size_t) part].pc, partTones[(size_t) part].cc0, true);
+        if (! onlyChanged || partTones[(size_t) part].pc != 0 || partTones[(size_t) part].cc0 != 0)
+            setPartInstrument (part, partTones[(size_t) part].pc, partTones[(size_t) part].cc0, true);
     }
 
     for (int id = 0; id < SC55::NumPartParams; ++id)
         if (SC55::getPartParamInfo (id).globalKind == SC55::GlobalMasterSysEx)
-            setGlobalParam (id, globalValues[(size_t) id], true);
+        {
+            const auto& info = SC55::getPartParamInfo (id);
+            if (! onlyChanged || globalValues[(size_t) id] != info.gRawDefault)
+                setGlobalParam (id, globalValues[(size_t) id], true);
+        }
 
     for (int id = 0; id < SC55::NumSysParams; ++id)
-        setSysParam (id, sysValues[(size_t) id], true);
+        if (! onlyChanged || sysValues[(size_t) id] != SC55::getSysParamInfo (id).rawDefault)
+            setSysParam (id, sysValues[(size_t) id], true);
 
-    applyMixState (true);   // mute / solo : les 16 parts
+    applyMixState (onlyChanged ? false : true);
 
     skipUnchanged = previousMode;
 }
 
-// ---------------------------------------------------------------------------
-// Etat <-> XML
-// ---------------------------------------------------------------------------
-
 std::unique_ptr<juce::XmlElement> SC55Processor::createStateXml (bool includeDeviceId) const
 {
     auto xml = std::make_unique<juce::XmlElement> ("SC55State");
+
+    xml->setAttribute ("midiOutputDevice", midiOutputDeviceName);
 
     for (int part = 0; part < 16; ++part)
     {
@@ -503,7 +544,7 @@ std::unique_ptr<juce::XmlElement> SC55Processor::createStateXml (bool includeDev
     }
 
     for (int id = 0; id < SC55::NumPartParams; ++id)
-        if (includeDeviceId || id != SC55::PartMidiChannel)   // le Device ID depend du materiel, pas du son
+        if (includeDeviceId || id != SC55::PartMidiChannel)   
             xml->setAttribute ("g" + juce::String (id), globalValues[(size_t) id]);
 
     for (int id = 0; id < SC55::NumSysParams; ++id)
@@ -514,6 +555,12 @@ std::unique_ptr<juce::XmlElement> SC55Processor::createStateXml (bool includeDev
 
 void SC55Processor::applyStateXml (const juce::XmlElement& xml, bool includeDeviceId)
 {
+    if (includeDeviceId)
+    {
+        midiOutputDeviceName = xml.getStringAttribute ("midiOutputDevice", midiOutputDeviceName);
+        updateDirectMidiOutput();
+    }
+
     for (int part = 0; part < 16; ++part)
     {
         for (int id = 0; id < SC55::NumPartParams; ++id)
@@ -522,7 +569,7 @@ void SC55Processor::applyStateXml (const juce::XmlElement& xml, bool includeDevi
             const auto name = "p" + juce::String (part) + "_" + juce::String (id);
             partValues[(size_t) part][(size_t) id] =
                 juce::jlimit (info.rawMin, info.rawMax,
-                              xml.getIntAttribute (name, SC55::getDefaultRaw (info, part)));
+                xml.getIntAttribute (name, partValues[(size_t) part][(size_t) id]));
         }
 
         for (int id = 0; id < SC55::NumAdvParams; ++id)
@@ -531,7 +578,7 @@ void SC55Processor::applyStateXml (const juce::XmlElement& xml, bool includeDevi
             const auto name = "a" + juce::String (part) + "_" + juce::String (id);
             partAdvValues[(size_t) part][(size_t) id] =
                 juce::jlimit (info.rawMin, info.rawMax,
-                              xml.getIntAttribute (name, SC55::getAdvDefaultRaw (info, part)));
+                              xml.getIntAttribute (name, partAdvValues[(size_t) part][(size_t) id]));
         }
 
         for (int id = 0; id < SC55::NumCcParams; ++id)
@@ -539,11 +586,14 @@ void SC55Processor::applyStateXml (const juce::XmlElement& xml, bool includeDevi
             const auto& info = SC55::getCcParamInfo (id);
             const auto name = "c" + juce::String (part) + "_" + juce::String (id);
             partCcValues[(size_t) part][(size_t) id] =
-                juce::jlimit (info.rawMin, info.rawMax, xml.getIntAttribute (name, info.rawDefault));
+                juce::jlimit (info.rawMin, info.rawMax,
+                              xml.getIntAttribute (name, partCcValues[(size_t) part][(size_t) id]));
         }
 
-        partTones[(size_t) part].cc0 = juce::jlimit (0, 127, xml.getIntAttribute ("t" + juce::String (part) + "_cc0", 0));
-        partTones[(size_t) part].pc  = juce::jlimit (0, 127, xml.getIntAttribute ("t" + juce::String (part) + "_pc", 0));
+        partTones[(size_t) part].cc0 = juce::jlimit (0, 127,
+            xml.getIntAttribute ("t" + juce::String (part) + "_cc0", partTones[(size_t) part].cc0));
+        partTones[(size_t) part].pc = juce::jlimit (0, 127,
+            xml.getIntAttribute ("t" + juce::String (part) + "_pc", partTones[(size_t) part].pc));
     }
 
     for (int id = 0; id < SC55::NumPartParams; ++id)
@@ -553,20 +603,19 @@ void SC55Processor::applyStateXml (const juce::XmlElement& xml, bool includeDevi
 
         const auto& info = SC55::getPartParamInfo (id);
         globalValues[(size_t) id] = juce::jlimit (info.gRawMin, info.gRawMax,
-                                                  xml.getIntAttribute ("g" + juce::String (id), info.gRawDefault));
+                                                   xml.getIntAttribute ("g" + juce::String (id), globalValues[(size_t) id]));
     }
 
     for (int id = 0; id < SC55::NumSysParams; ++id)
     {
         const auto& info = SC55::getSysParamInfo (id);
         sysValues[(size_t) id] = juce::jlimit (info.rawMin, info.rawMax,
-                                               xml.getIntAttribute ("s" + juce::String (id), info.rawDefault));
+                                               xml.getIntAttribute ("s" + juce::String (id), sysValues[(size_t) id]));
     }
 
     deviceId = (juce::uint8) globalValues[(size_t) SC55::PartMidiChannel];
 }
 
-// Preset "Default" : valeurs par defaut du SC-55
 std::unique_ptr<juce::XmlElement> SC55Processor::createDefaultStateXml()
 {
     auto xml = std::make_unique<juce::XmlElement> ("SC55Preset");
@@ -599,13 +648,6 @@ std::unique_ptr<juce::XmlElement> SC55Processor::createDefaultStateXml()
     return xml;
 }
 
-// ---------------------------------------------------------------------------
-// Etat de la DAW
-// ---------------------------------------------------------------------------
-//
-// L'etat complet est stocke dans le projet de la DAW : un projet reste donc
-// autonome, meme si les fichiers de presets ne sont pas disponibles.
-
 void SC55Processor::getStateInformation (juce::MemoryBlock& destData)
 {
     auto xml = createStateXml (true);
@@ -622,10 +664,6 @@ void SC55Processor::setStateInformation (const void* data, int sizeInBytes)
     applyStateXml (*xml, true);
     currentPresetName = xml->getStringAttribute ("preset", currentPresetName);
 }
-
-// ---------------------------------------------------------------------------
-// Presets
-// ---------------------------------------------------------------------------
 
 bool SC55Processor::applyPresetByName (const juce::String& name)
 {
@@ -648,7 +686,10 @@ bool SC55Processor::loadPreset (const juce::String& name, bool sendToDevice)
     presetManager.setLastPresetName (currentPresetName);
 
     if (sendToDevice)
-        resendAll (true);   // seules les valeurs qui different de celles deja envoyees
+    {
+        sendGsReset();
+        resendAll (true);
+    }
 
     return true;
 }
@@ -670,6 +711,12 @@ bool SC55Processor::saveCurrentAsPreset (const juce::String& rawName, juce::Stri
     }
 
     auto xml = createStateXml (false);
+    if (xml == nullptr)
+    {
+        error = "Erreur lors de la creation de l'etat du preset";
+        return false;
+    }
+
     xml->setTagName ("SC55Preset");
     xml->setAttribute ("name", name);
 
@@ -687,7 +734,7 @@ bool SC55Processor::deletePreset (const juce::String& name)
         return false;
 
     if (currentPresetName == name)
-        currentPresetName = juce::String();   // les valeurs restent, mais ne correspondent plus a un preset
+        currentPresetName = juce::String();   
 
     if (presetManager.getLastPresetName() == name)
         presetManager.setLastPresetName (PresetManager::kDefaultName);
@@ -700,7 +747,6 @@ juce::AudioProcessorEditor* SC55Processor::createEditor()
     return new SC55Editor (*this);
 }
 
-// Point d'entree de JUCE
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new SC55Processor();

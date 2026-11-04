@@ -24,17 +24,21 @@ private:
     int litState = 0;
 };
 
-// Voyant rond rose "EFX" (indicateur seul, non cliquable).
-class EfxIndicator : public juce::Component
+// Bouton rond rose "EFX" avec indicateur d'etat et flash au clic.
+class EfxIndicator : public juce::Button, private juce::Timer
 {
 public:
     EfxIndicator();
 
     void setLit (bool shouldBeLit);
-    void paint (juce::Graphics& g) override;
+    void flash();
+    void paintButton (juce::Graphics& g, bool isHighlighted, bool isDown) override;
 
 private:
+    void timerCallback() override;
+
     bool lit = false;
+    bool flashing = false;
 };
 
 // Ecran qui affiche les 16 parts d'un coup : numero, SOLO, MUTE, EFX, instrument,
@@ -46,6 +50,7 @@ public:
 
     // Appeles par l'ecran
     std::function<void (int part)>               onEditRequested;   // bouton EDIT d'une ligne
+    std::function<void (int part)>               onEfxRequested;    // bouton EFX d'une ligne
     std::function<void()>                        onCloseRequested;  // croix en haut a droite
     std::function<void (const juce::String&)>    onStatus;          // message pour la ligne de statut
     std::function<bool()>                        isAllActive;       // etat du bouton ALL (solo multiple si allume)

@@ -11,6 +11,7 @@ SC55Editor::SC55Editor (SC55Processor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
     setLookAndFeel (&lookAndFeel);
+    startTimerHz (10);
 
     addAndMakeVisible (headerBar);
 
@@ -172,6 +173,12 @@ SC55Editor::SC55Editor (SC55Processor& p)
         showPartList (false);
         refreshForCurrentPart();
         status.setText ("Edition de la Part " + juce::String (part + 1), juce::dontSendNotification);
+    };
+    partListView.onEfxRequested = [this] (int part)
+    {
+        partBox.setSelectedId (part + 1, juce::dontSendNotification);
+        showAdvanced (true);
+        status.setText ("Advanced - Part " + juce::String (part + 1), juce::dontSendNotification);
     };
     partListView.onCloseRequested = [this] { showPartList (false); };
     partListView.isAllActive = [this] { return allButton.getToggleState(); };
@@ -380,7 +387,8 @@ void SC55Editor::populatePresetBox()
     for (int i = 0; i < names.size(); ++i)
         presetBox.addItem (names[i], i + 1);
 
-    presetBox.setText (audioProcessor.getCurrentPresetName(), juce::dontSendNotification);
+    displayedPresetName = audioProcessor.getCurrentPresetName();
+    presetBox.setText (displayedPresetName, juce::dontSendNotification);
 }
 
 void SC55Editor::onPresetSelected()
@@ -450,8 +458,8 @@ void SC55Editor::onDeletePreset()
     if (! deleteArmed)
     {
         deleteArmed = true;
+        deleteArmedAt = juce::Time::getMillisecondCounter();
         deleteButton.setButtonText ("Confirmer ?");
-        startTimer (3000);
         return;
     }
 
@@ -471,13 +479,43 @@ void SC55Editor::onDeletePreset()
 void SC55Editor::disarmDelete()
 {
     deleteArmed = false;
-    stopTimer();
     deleteButton.setButtonText ("Suppr.");
 }
 
 void SC55Editor::timerCallback()
 {
-    disarmDelete();
+    if (deleteArmed
+        && juce::Time::getMillisecondCounter() - deleteArmedAt >= 3000)
+        disarmDelete();
+
+    const auto currentName = audioProcessor.getCurrentPresetName();
+    if (currentName != displayedPresetName)
+    {
+        populatePresetBox();
+        refreshForCurrentPart();
+    }
+
+    const auto keySequence = audioProcessor.getKeySwitchSequence();
+    if (keySequence != displayedKeySwitchSequence)
+    {
+        displayedKeySwitchSequence = keySequence;
+        const int note = audioProcessor.getLastKeySwitchNote();
+        const auto names = audioProcessor.getPresetManager().getPresetNames();
+
+        if (note >= 0 && note < names.size())
+            status.setText ("Envoi du preset " + names[note] + " au SC-55 en cours...",
+                            juce::dontSendNotification);
+    }
+
+    const auto loadSequence = audioProcessor.getPresetLoadSequence();
+    if (loadSequence != displayedPresetLoadSequence)
+    {
+        displayedPresetLoadSequence = loadSequence;
+        status.setText (juce::String::fromUTF8 ("Preset charg\xc3\xa9 : ")
+                            + audioProcessor.getCurrentPresetName()
+                            + " (fin d'envoi au SC-55)",
+                        juce::dontSendNotification);
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -674,7 +712,7 @@ void SC55Editor::paint (juce::Graphics& g)
 void SC55Editor::resized()
 {
     auto area = getLocalBounds().reduced (16);
-    headerBar.setBounds (area.removeFromTop (28));             // bandeau du haut
+    headerBar.setBounds (area.removeFromTop (35));             // bandeau du haut
 
     // Ligne Preset : liste editable + disquette + suppression
     auto presetRow = area.removeFromTop (28);

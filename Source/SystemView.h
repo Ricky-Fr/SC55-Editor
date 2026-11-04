@@ -1,21 +1,17 @@
-#pragma once
+﻿#pragma once
 
 #include "ParamPanel.h"
 #include "PluginProcessor.h"
 
-// Ecran SYSTEM : reglages generaux du SC-55 (pas ceux d'une part).
-//
-//   zone 0 (haut gauche)  : System       pan general, transposition generale, accord general
-//   zone 1 (haut droite)  : Reverb
-//   zone 2 (bas gauche)   : Chorus
-//   zone 3 (bas droite)   : Transmission (reglages de facade : aucun SysEx dans la documentation)
-//
-// Il se superpose a l'ecran de reglage d'une part, comme VIEW et ADVANCED.
-class SystemView : public ParamPanel
+class SystemView : public ParamPanel,
+                   private juce::Timer
 {
 public:
     explicit SystemView (SC55Processor& processorToUse);
     ~SystemView() override;
+
+    void resized() override;
+    void refresh();
 
 protected:
     Range getRange (ParamRef ref) const override;
@@ -24,11 +20,15 @@ protected:
     void  setRaw (ParamRef ref, int rawValue, bool immediate) override;
 
 private:
-    // Origine d'un parametre : commande globale de la table principale (PartParamId)
-    // ou parametre systeme / effet (SysParamId)
     enum Source { GlobalSource = 0, SysSource = 1 };
 
+    void timerCallback() override;
+
     SC55Processor& processor;
+    juce::Label midiOutputLabel { "midiOutputLabel", "MIDI Output:" };
+    juce::ComboBox midiOutputBox;
+    juce::Label lastProgramChangeLabel;
+    juce::Label versionLabel { "versionLabel", "" };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (SystemView)
 };

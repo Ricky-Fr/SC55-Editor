@@ -50,7 +50,7 @@ public:
             { "Fr",     makeFont (18.0f, juce::Font::bold | juce::Font::italic), white }
         };
 
-        const float baseline = (float) getHeight() - 6.0f;
+        const float baseline = (float) getHeight() - 13.0f;
 
         drawRuns (g, logo,      0.0f, baseline);
         drawRuns (g, title,     ((float) getWidth() - measureRuns (title)) * 0.5f, baseline);

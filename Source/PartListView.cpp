@@ -98,8 +98,9 @@ void SpeakerButton::paintButton (juce::Graphics& g, bool isHighlighted, bool isD
 // ---------------------------------------------------------------------------
 
 EfxIndicator::EfxIndicator()
+    : juce::Button ("EFX")
 {
-    setInterceptsMouseClicks (false, false);
+    setMouseCursor (juce::MouseCursor::PointingHandCursor);
 }
 
 void EfxIndicator::setLit (bool shouldBeLit)
@@ -111,19 +112,34 @@ void EfxIndicator::setLit (bool shouldBeLit)
     }
 }
 
-void EfxIndicator::paint (juce::Graphics& g)
+void EfxIndicator::flash()
+{
+    flashing = true;
+    startTimer (120);
+    repaint();
+}
+
+void EfxIndicator::timerCallback()
+{
+    flashing = false;
+    stopTimer();
+    repaint();
+}
+
+void EfxIndicator::paintButton (juce::Graphics& g, bool isHighlighted, bool isDown)
 {
     const auto area = getLocalBounds().toFloat().reduced (1.0f);
     const float d = juce::jmin (area.getWidth(), area.getHeight());
     const auto face = juce::Rectangle<float> (d, d).withCentre (area.getCentre());
 
-    const juce::Colour base = lit ? juce::Colour (0xffff3b4a) : juce::Colour (0xffe9a3ae);
+    const juce::Colour base = flashing ? juce::Colour (0xfffff0a0)
+                                       : (lit ? juce::Colour (0xffff3b4a) : juce::Colour (0xffe9a3ae));
 
     g.setGradientFill (juce::ColourGradient (base.brighter (0.5f), face.getX() + d * 0.3f, face.getY() + d * 0.25f,
                                              base.darker (0.4f), face.getRight(), face.getBottom(), true));
     g.fillEllipse (face);
 
-    g.setColour (juce::Colour (0xff4a4a4a));
+    g.setColour ((isHighlighted || isDown) ? juce::Colour (0xffffffff) : juce::Colour (0xff4a4a4a));
     g.drawEllipse (face, 1.2f);
 
     g.setColour (juce::Colour (0xff3a1a1e));
@@ -194,6 +210,13 @@ PartListView::PartListView (SC55Processor& processorToUse)
         {
             if (onEditRequested)
                 onEditRequested (part);
+        };
+
+        row.efx.onClick = [this, part]
+        {
+            rows[(size_t) part].efx.flash();
+            if (onEfxRequested)
+                onEfxRequested (part);
         };
 
         addAndMakeVisible (row.solo);

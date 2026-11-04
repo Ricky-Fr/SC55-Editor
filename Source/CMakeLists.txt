@@ -10,46 +10,46 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(JUCE)
 
-# IS_SYNTH TRUE : le plugin apparait sur une piste instrument dans la DAW,
-# ce qui facilite le routage de sa sortie MIDI vers d'autres pistes.
+# IS_SYNTH FALSE & IS_MIDI_EFFECT TRUE : le plugin se comporte comme un effet MIDI.
 juce_add_plugin(SC55Editor
     COMPANY_NAME "Ricky_Fr"
-    IS_SYNTH TRUE
+    IS_SYNTH FALSE
     NEEDS_MIDI_INPUT TRUE
     NEEDS_MIDI_OUTPUT TRUE
+    IS_MIDI_EFFECT TRUE
     PLUGIN_MANUFACTURER_CODE Rick
     PLUGIN_CODE Sc55
     FORMATS VST3 Standalone
-    ICON_BIG   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/icon_big.png"
-    ICON_SMALL "${CMAKE_CURRENT_SOURCE_DIR}/Resources/icon_small.png"
+    ICON_BIG   "${CMAKE_CURRENT_SOURCE_DIR}/icon_big.png"
+    ICON_SMALL "${CMAKE_CURRENT_SOURCE_DIR}/icon_small.png"
     PRODUCT_NAME "SC55 Editor")
 
 target_sources(SC55Editor PRIVATE
-    Source/PluginProcessor.cpp
-    Source/PluginProcessor.h
-    Source/PluginEditor.cpp
-    Source/PluginEditor.h
-    Source/SysExQueue.cpp
-    Source/SysExQueue.h
-    Source/MixState.h
-    Source/SysExParamSlider.h
-    Source/PartParams.h
-    Source/InstrumentData.h
-    Source/RoundLedButton.h
-    Source/FloppyButton.h
-    Source/HeaderBar.h
-    Source/PartListView.cpp
-    Source/PartListView.h
-    Source/AdvancedView.cpp
-    Source/AdvancedView.h
-    Source/SystemView.cpp
-    Source/SystemView.h
-    Source/ParamPanel.cpp
-    Source/ParamPanel.h
-    Source/PresetManager.cpp
-    Source/PresetManager.h
-    Source/SC55LookAndFeel.h
-    Source/SC55Config.h)
+    PluginProcessor.cpp
+    PluginProcessor.h
+    PluginEditor.cpp
+    PluginEditor.h
+    SysExQueue.cpp
+    SysExQueue.h
+    MixState.h
+    SysExParamSlider.h
+    PartParams.h
+    InstrumentData.h
+    RoundLedButton.h
+    FloppyButton.h
+    HeaderBar.h
+    PartListView.cpp
+    PartListView.h
+    AdvancedView.cpp
+    AdvancedView.h
+    SystemView.cpp
+    SystemView.h
+    ParamPanel.cpp
+    ParamPanel.h
+    PresetManager.cpp
+    PresetManager.h
+    SC55LookAndFeel.h
+    SC55Config.h)
 
 target_compile_definitions(SC55Editor PUBLIC
     JUCE_WEB_BROWSER=0
@@ -59,8 +59,9 @@ target_compile_definitions(SC55Editor PUBLIC
 
 target_link_libraries(SC55Editor
     PRIVATE juce::juce_audio_utils
+            juce::juce_audio_devices
     PUBLIC  juce::juce_recommended_config_flags
             juce::juce_recommended_warning_flags)
 
 # Application autonome personnalisee (menu Options avec "About") : cible Standalone uniquement
-target_sources(SC55Editor_Standalone PRIVATE Source/StandaloneApp.cpp)
+target_sources(SC55Editor_Standalone PRIVATE StandaloneApp.cpp)
