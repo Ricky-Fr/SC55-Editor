@@ -36,7 +36,7 @@ Works also with Nuked-SC-55-GUI Float emulator that has a midi input, and succes
 
 *Main window*
 
-<img width="722" height="628" alt="sc55-2" src="https://github.com/user-attachments/assets/53df4b6f-9797-45de-a124-15c1cc1c27da" />
+<img width="722" height="632" alt="image" src="https://github.com/user-attachments/assets/df0bc743-97d4-44f9-b71b-4f3ec0603176" />
 
 *View window*
 
