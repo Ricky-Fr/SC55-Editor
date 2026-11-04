@@ -13,9 +13,11 @@ SC-55 Editor is a modern Windows application for managing and editing Roland SC-
 An editor tailored for the Roland SC-55 **hardware** unit. It allows you to tweak and control hardware parameters directly from your PC.
 Roland SoundCanvas SC-55 is a desktop synthesizer, also called sound expander.
 
-A dedicated VST plugin version (designed specifically for Ableton Live in my workflow) is planned as a future development phase.
+A dedicated VST plugin version (designed specifically for Ableton Live in my workflow) is yet released.
 Allows saving all settings as a preset and recalling them on the fly.
-Using Vibe Coding with Claude.
+the vst version allows to do Key Switching: you puts a note from C-2 to G8 in a clip then the correponding preset number is loaded. In ex : C#-2 = preset #1, D2 = preset #3
+
+Using Vibe Coding with Claude and Copilot. Done in C++ and JUCE.
 
 The current version is fully functional and supports tweaking all main parameters.
 
@@ -53,7 +55,8 @@ Works also with Nuked-SC-55-GUI Float emulator that has a midi input, and tested
 
 To test the editor without relying on physical hardware, I used a software emulator alongside virtual MIDI tools:
 
-### 1. Emulator
+### 1. Emulators
+- **88EmuPlayer GUI** : Downloaded from Usuals Suspects https://theusualsuspects.io/downloads/88emuplayer
 - **Nuked-SC55 GUI**: Downloaded from [linoshkmalayil/Nuked-SC55-GUI-Float](https://github.com/linoshkmalayil/Nuked-SC55-GUI-Float) (conveniently provides a pre-compiled `.exe`).
 - **ROM Requirements**: You will need to source the required ROM files independently. Although my physical unit runs ROM v1.20, I used **ROM v1.21**, which is properly recognized by the emulator executable.
 
@@ -61,7 +64,7 @@ To test the editor without relying on physical hardware, I used a software emula
 - **loopMIDI**: Used to create a virtual MIDI port for interconnectivity.
 - **MIDI-OX**: Used to monitor and inspect MIDI messages passing through for verification.
 
-> ⚠️ **Important Note**: The emulator uses `loopMIDI` as its input device. Make sure to disable all other MIDI devices in your setup before launching the emulator to avoid conflicts.
+> ⚠️ **Important Note**: The emulator uses `loopMIDI` as its input device. Make sure to disable all other MIDI devices in your setup before launching the emulator to avoid conflicts. When playing keyboard in Ableton, please don't select 'track' for the virtual port in input.
 
 ---
 
