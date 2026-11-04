@@ -1,7 +1,7 @@
 # Roland SC-55 Editor - Standalone and VST
 
 ![Status](https://img.shields.io/badge/status-in%20development-orange?style=flat-square)
-![Version](https://img.shields.io/badge/version-1.8%20stable-brightgreen?style=flat-square)
+![Version](https://img.shields.io/badge/version-1.16%20stable-brightgreen?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square)
 ![C++](https://img.shields.io/badge/C%2B%2B-00599C?style=flat-square&logo=cplusplus&logoColor=white)
 ![JUCE](https://img.shields.io/badge/Framework-JUCE-black?style=flat-square)
@@ -42,7 +42,7 @@ Works also with Nuked-SC-55-GUI Float emulator that has a midi input, and succes
 
 <img width="722" height="632" alt="image" src="https://github.com/user-attachments/assets/9e361be0-a5b5-4a18-8b6e-83d11846fe42" />
 
-*Advanced window*
+*Advanced window : real-time ADSR and Velocity Graphics*
 
 <img width="722" height="632" alt="image" src="https://github.com/user-attachments/assets/227a5d1b-ddd0-4cff-95f9-53b0d1991c28" />
 
