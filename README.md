@@ -13,9 +13,9 @@ SC-55 Editor is a modern Windows application for managing and editing Roland SC-
 An editor tailored for the Roland SC-55 **hardware** unit. It allows you to tweak and control hardware parameters directly from your PC.
 Roland SoundCanvas SC-55 is a desktop synthesizer, also called sound expander.
 
-A dedicated VST plugin version (designed specifically for Ableton Live in my workflow) is yet released.
+A dedicated VST3 plugin version (designed specifically for Ableton Live in my workflow) is yet released.
 Allows saving all settings as a preset and recalling them on the fly.
-the vst version allows to do Key Switching: you put a note from C-2 to G8 in a clip then the correponding preset number is loaded. In ex : C#-2 = preset #1, D2 = preset #2
+The vst version allows to do Key Switching: you put a note from C-2 to G8 in a clip then the correponding preset number is loaded. In ex : C#-2 = preset #1, D-2 = preset #2
 
 Using Vibe Coding with Claude and Copilot. Done in C++ and JUCE.
 
