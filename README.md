@@ -19,7 +19,7 @@ Using Vibe Coding with Claude.
 
 The current version is fully functional and supports tweaking all main parameters.
 
-Works also with Nuked-SC-55-GUI Float emulator that has a midi input, but not with The Usual Suspect's one which has not.
+Works also with Nuked-SC-55-GUI Float emulator that has a midi input, and tested succesfully with The Usual Suspectt's one.
 
 <img width="639" height="273" alt="sc55-hw" src="https://github.com/user-attachments/assets/a5a7b4c8-c366-4997-afbd-13a24d43b1e6" />
 
