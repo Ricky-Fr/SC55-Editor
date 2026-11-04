@@ -60,8 +60,11 @@ To test the editor without relying on physical hardware, I used a software emula
 - **ROM Requirements**: You will need to source the required ROM files independently. Although my physical unit runs ROM v1.20, I used **ROM v1.21**, which is properly recognized by the emulator executable.
 
 ### 2. MIDI Routing & Monitoring
-- **loopMIDI**: Used to create a virtual MIDI port for interconnectivity.
-- **MIDI-OX**: Used to monitor and inspect MIDI messages passing through for verification.
+- **loopMIDI**: Used to create a virtual MIDI port for interconnectivity. Necessary for emulator use. 
+
+  <img width="494" height="331" alt="image" src="https://github.com/user-attachments/assets/2d938eb0-94c7-4297-b55f-db517ec8d1a9" />
+
+- **MIDI-OX**: optional - Used to monitor and inspect MIDI messages passing through for verification.
 
 > ⚠️ **Important Note**: The emulator uses `loopMIDI` as its input device. Make sure to disable all other MIDI devices in your setup before launching the emulator to avoid conflicts. When playing keyboard in Ableton, please don't select 'track' for the virtual port in input.
 
